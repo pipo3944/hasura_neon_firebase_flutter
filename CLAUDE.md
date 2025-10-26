@@ -43,25 +43,66 @@ hasura console  # Opens at http://localhost:9695
 
 ### Hasura Development Workflow
 
-**CRITICAL**: Always use `hasura console` (CLI-launched), never access `http://localhost:8080/console` directly. The CLI tracks changes for migration generation.
+**🚨 CRITICAL: Two Different Consoles**
 
+Hasura has TWO consoles - do NOT confuse them:
+
+1. **`http://localhost:8080/console`** (Hasura server's built-in console)
+   - ❌ Changes here do NOT generate migration files automatically
+   - ⚠️ CAN be used if CLI console doesn't work (see below)
+   - ✅ OK for: data inspection, GraphQL testing
+
+2. **`http://localhost:9695`** (Hasura CLI console) - **IDEAL**
+   - ✅ Changes here automatically generate migration files
+   - ✅ Use for ALL schema changes, permissions, relationships
+   - Launch with: `hasura console`
+
+**Known Issue - CORS Error**:
+In this project, the CLI console (`localhost:9695`) has CORS errors and doesn't work properly. Therefore, we use the following workflow:
+
+**Actual Workflow (CORS Workaround)**:
+1. Use `http://localhost:8080/console` for GUI operations (Track, Permissions)
+2. Manually create migration files in `migrations/default/<timestamp>_name/`
+3. Run `hasura metadata export` to save metadata
+4. Commit both migrations and metadata to Git
+
+This approach works just as well as the CLI console. See `docs/development-flow.md` and `docs/troubleshooting.md` for details.
+
+**Ideal workflow (if CLI console works)**:
 ```bash
 cd backend/hasura
+hasura console  # Opens at localhost:9695
+# Make changes in GUI → migrations/metadata auto-generated
+git add migrations/ metadata/
+git commit -m "Your changes"
+```
 
-# 1. Open Hasura Console (for DB schema changes)
-hasura console
+**Actual workflow (CORS workaround - used in this project)**:
+```bash
+# 1. Open server console in browser
+# Navigate to http://localhost:8080/console (enter admin_secret)
 
-# 2. After making changes in Console UI, generate migration
-hasura migrate create "descriptive_name" --from-server
+# 2. Make changes in GUI (Track tables, set permissions, etc.)
 
-# 3. Export metadata (permissions, relationships, etc.)
+# 3. Manually create migration files
+cd backend/hasura/migrations/default
+mkdir $(date +%s)000_your_migration_name
+# Create up.sql and down.sql manually
+
+# 4. Export metadata
+cd backend/hasura
 hasura metadata export
 
-# 4. Apply migrations (when pulling changes)
+# 5. Commit to Git
+git add migrations/ metadata/
+git commit -m "Your changes"
+git push
+
+# 6. Apply migrations (when pulling changes)
 hasura migrate apply
 hasura metadata apply
 
-# 5. Apply seed data (test data)
+# 7. Apply seed data (test data)
 hasura seed apply
 
 # Rollback migrations
@@ -136,7 +177,11 @@ cd hasura && hasura migrate apply && hasura metadata apply
 3. Hasura extracts claims into session variables (`X-Hasura-User-Id`, `X-Hasura-Tenant-Id`, `X-Hasura-Role`)
 4. Permissions filter queries using these session variables
 
-**Roles**: `anonymous` (unauthenticated), `user` (standard user), `admin` (full access)
+**Roles**:
+- `anonymous` (unauthenticated)
+- `user` (standard user - can only access their own data)
+- `tenant_admin` (organization admin - can access all data within their tenant including soft-deleted records)
+- `admin` (system admin - full access to all tenants)
 
 **User Sync Strategy**: Client-triggered idempotent upsert on first login using `ON CONFLICT` (server-side sync via Cloud Functions is future enhancement)
 
@@ -158,15 +203,34 @@ Both must be committed together when making schema changes.
 
 **All data tables include `tenant_id`** (except lookup tables and `organizations` itself).
 
-**Hasura Permissions Example**:
+**Hasura Permissions Examples**:
+
+User role (own data only):
 ```json
 {
   "filter": {
     "_and": [
       {"tenant_id": {"_eq": "X-Hasura-Tenant-Id"}},
+      {"user_id": {"_eq": "X-Hasura-User-Id"}},
       {"deleted_at": {"_is_null": true}}
     ]
   }
+}
+```
+
+Tenant admin role (all data in tenant including soft-deleted):
+```json
+{
+  "filter": {
+    "tenant_id": {"_eq": "X-Hasura-Tenant-Id"}
+  }
+}
+```
+
+Admin role (all data across all tenants):
+```json
+{
+  "filter": {}
 }
 ```
 
@@ -204,15 +268,33 @@ docs/
 
 ## Development Workflow
 
-1. **Local Development**: Make changes in Hasura Console (GUI)
+1. **Local Development**: Make changes in Hasura Console (GUI at `localhost:9695`)
 2. **Generate Migration**: `hasura migrate create --from-server "descriptive_name"`
-3. **Export Metadata**: `hasura metadata export`
+3. **Export Metadata**: `hasura metadata export` (includes Track info, permissions, relationships)
 4. **Commit**: `git add migrations/ metadata/` → commit → push
 5. **CI (dev)**: GitHub Actions auto-applies to dev environment
 6. **Test**: Real device testing against dev Cloud Run
 7. **Production**: Manual approval → prod deployment
 
 **NEVER skip the Hasura Console CLI step**. Direct database changes or using the web console without CLI will not be tracked in migrations.
+
+### What is "Track"?
+
+**Track** = Tell Hasura to recognize a PostgreSQL table and generate GraphQL API for it.
+
+- PostgreSQL table exists → **Track** → GraphQL API available
+- Without Track: table exists in DB but NOT accessible via GraphQL
+- Track info is stored in metadata (`metadata/databases/default/tables/`)
+
+**When to Track**:
+- ✅ Console (GUI): Automatic when you create tables
+- ✅ CLI/migration: Manual - run `hasura metadata export` after creating tables
+- ❌ Team members pulling changes: No need - `hasura metadata apply` handles it
+
+**Track all tables at once**:
+```bash
+hasura metadata reload  # Auto-tracks untracked tables
+```
 
 ## GraphQL Code Generation (Flutter)
 

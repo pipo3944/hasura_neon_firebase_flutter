@@ -420,11 +420,32 @@ CREATE INDEX idx_users_email
 
 ### 2. Hasura パーミッションで自動フィルタ
 
+**user ロール**: 自分が作成したデータのみ
+```json
+{
+  "filter": {
+    "_and": [
+      {"tenant_id": {"_eq": "X-Hasura-Tenant-Id"}},
+      {"user_id": {"_eq": "X-Hasura-User-Id"}},
+      {"deleted_at": {"_is_null": true}}
+    ]
+  }
+}
+```
+
+**tenant_admin ロール**: テナント内の全データ（削除済み含む）
 ```json
 {
   "filter": {
     "tenant_id": {"_eq": "X-Hasura-Tenant-Id"}
   }
+}
+```
+
+**admin ロール**: 全テナントの全データ
+```json
+{
+  "filter": {}
 }
 ```
 

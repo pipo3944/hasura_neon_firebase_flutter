@@ -67,7 +67,7 @@ sequenceDiagram
 const admin = require('firebase-admin');
 
 await admin.auth().setCustomUserClaims(uid, {
-  role: 'user',           // 'user' | 'admin'
+  role: 'user',           // 'user' | 'tenant_admin' | 'admin'
   tenant_id: 'org-123',   // マルチテナント対応
 });
 ```
@@ -135,13 +135,14 @@ HASURA_GRAPHQL_JWT_SECRET='{"type":"RS256","jwk_url":"https://www.googleapis.com
 
 ## ロール設計
 
-### 3つのロール
+### 4つのロール
 
 | ロール | 用途 | 権限 |
 |--------|------|------|
 | **anonymous** | 未ログイン状態 | 公開データの参照のみ |
 | **user** | 一般ユーザー | 自身のデータCRUD、他人のデータ参照（一部） |
-| **admin** | 運営者 | 全データへのアクセス |
+| **tenant_admin** | テナント管理者 | 自分のテナント内の全データへのアクセス |
+| **admin** | システム管理者 | 全テナントの全データへのアクセス |
 
 ### ロール判定フロー
 
@@ -158,18 +159,21 @@ flowchart TD
 
     ExtractClaims --> CheckRole{role claim}
     CheckRole -->|admin| Admin[ロール: admin]
+    CheckRole -->|tenant_admin| TenantAdmin[ロール: tenant_admin]
     CheckRole -->|user| User[ロール: user]
     CheckRole -->|未設定| DefaultUser[ロール: user<br/>default]
 
     Anonymous --> ApplyPerm[パーミッション適用]
     User --> ApplyPerm
     DefaultUser --> ApplyPerm
+    TenantAdmin --> ApplyPerm
     Admin --> ApplyPerm
 
     ApplyPerm --> Execute[クエリ実行]
 
     style Reject fill:#F44336
     style Admin fill:#4CAF50
+    style TenantAdmin fill:#FF9800
     style User fill:#2196F3
     style Anonymous fill:#9E9E9E
 ```
@@ -209,10 +213,20 @@ flowchart TD
 }
 ```
 
+**tenant_admin ロール - select**:
+```json
+{
+  "filter": {
+    "tenant_id": {"_eq": "X-Hasura-Tenant-Id"}
+  },
+  "columns": "*"  // 全カラム（deleted_at含む）
+}
+```
+
 **admin ロール - select**:
 ```json
 {
-  "filter": {},  // 制限なし
+  "filter": {},  // 制限なし（全テナント）
   "columns": "*"  // 全カラム
 }
 ```

@@ -78,28 +78,247 @@ hasura console
 
 ---
 
+## ⚠️ Hasura Console の2種類と使い分け
+
+Hasuraには**2つの異なるConsole**があります。混同しやすいので注意してください。
+
+### 🔴 方法1: Hasura サーバー本体のConsole（`localhost:8080`）
+
+**アクセス**: `http://localhost:8080/console`
+**ログイン**: `admin_secret` を入力
+
+**特徴**:
+- Hasuraサーバーが直接提供するWeb UI
+- すぐにアクセスできる（`hasura console` コマンド不要）
+
+**⚠️ 重大な問題**:
+- この画面で変更しても、**マイグレーションファイルが生成されない**
+- つまり、変更がGitで管理できない
+- チーム開発では使わない（確認用のみ）
+
+**使用ケース**:
+- ✅ データの確認（SELECT）
+- ✅ GraphQLクエリのテスト
+- ✅ パーミッションの動作確認
+- ❌ スキーマ変更（テーブル作成・カラム追加等）
+
+---
+
+### 🟢 方法2: Hasura CLI経由のConsole（`localhost:9695`）- **理想だが注意**
+
+**起動方法**: `hasura console` コマンド
+**アクセス**: `http://localhost:9695`
+**ログイン**: 通常は不要（Collaborator Tokenエラーが出た場合は後述）
+
+**特徴**:
+- Hasura CLIが仲介して起動
+- この画面で変更すると、**自動的にマイグレーションファイルが生成される**
+- Gitで管理できる
+
+**⚠️ 既知の問題（CORS エラー）**:
+環境によっては、CLI Console が CORS エラーで正常に動作しないことがあります。その場合は以下の回避策を使用してください：
+
+**回避策**: 方法1（サーバーConsole）+ 手動メタデータエクスポート
+1. `http://localhost:8080/console` でTrack・Permissions設定
+2. マイグレーションは手動作成（後述）
+3. `hasura metadata export` で手動エクスポート
+
+この方法でも問題なく開発できます。
+
+---
+
+### 使い分けまとめ
+
+| 作業内容 | `localhost:8080` | `localhost:9695`（CLI） |
+|---------|-----------------|----------------------|
+| テーブル作成・変更 | ⚠️ 手動マイグレーション必要 | ✅ 自動生成（理想） |
+| パーミッション設定 | ⚠️ metadata export必要 | ✅ 自動保存（理想） |
+| Track（テーブル追跡） | ⚠️ metadata export必要 | ✅ 自動保存（理想） |
+| データ確認 | ✅ | ✅ |
+| GraphQLテスト | ✅ | ✅ |
+
+**原則（理想）**: スキーマやパーミッションを変更する時は、**`hasura console` (CLI経由)** を使う。
+
+**実際の運用**: CLI Console が CORS エラーで動かない場合：
+1. `localhost:8080/console` でGUI操作
+2. 手動でマイグレーション作成 & メタデータエクスポート
+3. この方法でも問題なく開発できる
+
+---
+
+## テーブルの「Track（追跡）」とは？
+
+### Trackの必要性
+
+PostgreSQLにテーブルを作成しただけでは、**HasuraはそのテーブルをGraphQL APIとして公開しません**。
+
+```
+PostgreSQL     →    Track    →    GraphQL API
+テーブル作成           設定          利用可能
+```
+
+### Trackしないとどうなるか
+
+**PostgreSQL側**:
+```sql
+-- テーブルは存在する
+SELECT * FROM posts;  -- ✅ OK
+```
+
+**GraphQL側**:
+```graphql
+query {
+  posts {  # ❌ エラー: "posts" field not found
+    id
+    title
+  }
+}
+```
+
+### Trackするとどうなるか
+
+Hasuraが自動的に以下を生成：
+- Query: `posts`, `posts_by_pk`, `posts_aggregate`
+- Mutation: `insert_posts`, `update_posts`, `delete_posts`
+- Subscription: `posts` (リアルタイム)
+
+```graphql
+query {
+  posts {  # ✅ OK！
+    id
+    title
+    user {  # リレーションも使える
+      name
+    }
+  }
+}
+```
+
+---
+
+### Trackの実行方法
+
+#### 方法1: Hasura Console（GUI）で Track
+
+1. `http://localhost:9695` → Data タブ
+2. "Untracked tables" セクション
+3. テーブル横の「Track」ボタンをクリック
+
+**自動で行われること**:
+- メタデータに記録
+- GraphQLスキーマ生成
+- `hasura metadata export` で自動保存
+
+#### 方法2: コマンドで Track
+
+```bash
+# 全てのテーブルを一括Track
+hasura metadata reload
+
+# または、メタデータを手動編集してapply
+hasura metadata apply
+```
+
+---
+
+### チーム開発での Track
+
+**重要**: 個別に Track 作業は不要！
+
+新規参加者がリポジトリをcloneした場合：
+
+```bash
+# 1. マイグレーション適用（テーブル作成）
+hasura migrate apply
+
+# 2. メタデータ適用（Track情報も含む）
+hasura metadata apply
+```
+
+`hasura metadata apply` で、Track情報も全て反映されます。
+
+---
+
+### いつ Track が必要か
+
+| 状況 | Track必要？ | 理由 |
+|------|-----------|------|
+| Hasura Console（GUI）でテーブル作成 | 自動 | Consoleが自動でTrack |
+| マイグレーションファイルでテーブル作成 | 手動 | 後で `metadata export` が必要 |
+| 他の開発者が作ったテーブルをpull | 不要 | `metadata apply` で自動 |
+| テーブルのカラム追加・変更 | 不要 | 既にTrack済み |
+
+---
+
+### Track の実体
+
+Trackされた情報は `metadata/databases/default/tables/` に保存されます：
+
+```yaml
+# metadata/databases/default/tables/public_posts.yaml
+table:
+  name: posts
+  schema: public
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+array_relationships:
+  - name: comments
+    using:
+      foreign_key_constraint_on:
+        column: post_id
+        table:
+          name: comments
+          schema: public
+```
+
+このファイルをGitで管理することで、チーム全体で同じGraphQL APIを共有できます。
+
+---
+
 ## DB変更の作成フロー
 
-### ケース1: テーブル作成
+### 実際の開発ワークフロー（2つのアプローチ）
+
+#### アプローチA: CLI Console（理想・自動）
 
 ```mermaid
 sequenceDiagram
     participant Dev as 開発者
-    participant Console as Hasura Console
+    participant CLI as hasura console (9695)
+    participant DB as Local DB
+    participant Git
+
+    Dev->>CLI: GUI でテーブル作成・Track・Permissions設定
+    CLI->>DB: CREATE TABLE等を実行
+    CLI-->>Dev: migrations/ 自動生成
+    CLI-->>Dev: metadata/ 自動更新
+
+    Dev->>Git: git add migrations/ metadata/
+    Dev->>Git: git commit & push
+```
+
+#### アプローチB: サーバーConsole（CORS問題時の回避策・手動）
+
+```mermaid
+sequenceDiagram
+    participant Dev as 開発者
+    participant Console as localhost:8080/console
     participant DB as Local DB
     participant CLI as Hasura CLI
     participant Git
 
     Dev->>Console: GUI でテーブル作成
     Console->>DB: CREATE TABLE 実行
-    DB-->>Console: 成功
 
-    Dev->>Console: パーミッション設定
+    Dev->>Console: Track & Permissions設定
     Console->>DB: メタデータ更新
 
-    Dev->>CLI: hasura migrate create --from-server
-    CLI->>DB: DB差分を検出
-    CLI-->>Dev: migrations/<timestamp>_<name>/ 生成
+    Note over Dev: マイグレーションファイルは<br/>自動生成されない
+
+    Dev->>Dev: migrations/<timestamp>_xxx/up.sql を手動作成
+    Dev->>Dev: migrations/<timestamp>_xxx/down.sql を手動作成
 
     Dev->>CLI: hasura metadata export
     CLI->>DB: メタデータ取得
@@ -109,14 +328,20 @@ sequenceDiagram
     Dev->>Git: git commit & push
 ```
 
-**実際の手順**:
+**このプロジェクトでは、CLI Console が CORS エラーで動作しなかったため、アプローチB を採用しています。**
+
+---
+
+### ケース1: テーブル作成（手動マイグレーション方式）
+
+**実際の手順（手動マイグレーション方式）**:
 
 1. **Hasura Console でテーブル作成**:
-   - `http://localhost:9695` → Data タブ
+   - `http://localhost:8080/console` → Data タブ（admin_secretでログイン）
    - "Create Table" をクリック
    - テーブル名: `posts`
    - カラム追加:
-     - `id` UUID, Primary Key, Default: `uuid_generate_v7()`
+     - `id` UUID, Primary Key, Default: `gen_random_uuid()`
      - `tenant_id` UUID, Not Null
      - `title` Text, Not Null
      - `content` Text, Not Null
@@ -134,26 +359,50 @@ sequenceDiagram
    CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
    ```
 
-4. **パーミッション設定**:
-   - "Permissions" タブ
-   - `user` ロールで `select` / `insert` / `update` / `delete` を設定
+4. **Track & Relationships**:
+   - "Track" ボタンをクリック（Untrackedの場合）
+   - "Relationships" タブで foreign key relationships を Track
 
-5. **マイグレーション生成**:
+5. **パーミッション設定**:
+   - "Permissions" タブ
+   - `user` / `tenant_admin` / `admin` ロールで権限を設定
+
+6. **マイグレーションファイルを手動作成**:
+   ```bash
+   cd backend/hasura/migrations/default
+   mkdir 1234567890123_create_posts_table  # タイムスタンプは現在時刻のUNIX時間（ミリ秒）
+   cd 1234567890123_create_posts_table
+   ```
+
+   `up.sql` を作成:
+   ```sql
+   CREATE TABLE posts (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     tenant_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+     title TEXT NOT NULL,
+     content TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   );
+
+   CREATE INDEX idx_posts_tenant_id ON posts(tenant_id);
+   CREATE INDEX idx_posts_created_at ON posts(created_at DESC);
+
+   CREATE TRIGGER update_posts_updated_at
+     BEFORE UPDATE ON posts
+     FOR EACH ROW
+     EXECUTE FUNCTION update_updated_at_column();
+   ```
+
+   `down.sql` を作成:
+   ```sql
+   DROP TRIGGER IF EXISTS update_posts_updated_at ON posts;
+   DROP TABLE IF EXISTS posts CASCADE;
+   ```
+
+7. **メタデータエクスポート**:
    ```bash
    cd backend/hasura
-   hasura migrate create "create_posts_table" --from-server
-   ```
-
-   生成されるファイル:
-   ```
-   migrations/
-   └── <timestamp>_create_posts_table/
-       ├── up.sql    # テーブル作成SQL
-       └── down.sql  # テーブル削除SQL
-   ```
-
-6. **メタデータエクスポート**:
-   ```bash
    hasura metadata export
    ```
 
@@ -163,15 +412,15 @@ sequenceDiagram
    ├── databases/
    │   └── default/
    │       └── tables/
-   │           ├── public_posts.yaml  # 新規追加
+   │           ├── public_posts.yaml  # Track & Permissions情報
    │           └── ...
    └── ...
    ```
 
-7. **Git コミット**:
+8. **Git コミット**:
    ```bash
    git add migrations/ metadata/
-   git commit -m "Add posts table with tenant support"
+   git commit -m "Add posts table with tenant support and permissions"
    git push origin main
    ```
 
