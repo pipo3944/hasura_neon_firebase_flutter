@@ -86,15 +86,16 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - created_by
+        - id
         - email
         - name
         - role
+        - created_at
         - updated_at
       filter:
         _and:
-          - id:
-              _eq: X-Hasura-User-Id
+          - tenant_id:
+              _eq: X-Hasura-Tenant-Id
           - deleted_at:
               _is_null: true
     comment: ""

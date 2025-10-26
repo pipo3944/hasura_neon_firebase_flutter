@@ -93,6 +93,8 @@ select_permissions:
         _and:
           - tenant_id:
               _eq: X-Hasura-Tenant-Id
+          - user_id:
+              _eq: X-Hasura-User-Id
           - deleted_at:
               _is_null: true
     comment: ""

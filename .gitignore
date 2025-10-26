@@ -25,6 +25,10 @@ docker-compose.override.yml
 # Hasura
 backend/hasura/config.yaml
 
+# Node.js (for test scripts)
+node_modules/
+package-lock.json
+
 # Flutter
 app/.dart_tool/
 app/.flutter-plugins
