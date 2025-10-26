@@ -1,0 +1,77 @@
+table:
+  name: organizations
+  schema: public
+array_relationships:
+  - name: posts
+    using:
+      foreign_key_constraint_on:
+        column: tenant_id
+        table:
+          name: posts
+          schema: public
+  - name: users
+    using:
+      foreign_key_constraint_on:
+        column: tenant_id
+        table:
+          name: users
+          schema: public
+insert_permissions:
+  - role: tenant_admin
+    permission:
+      check:
+        id:
+          _eq: X-Hasura-Tenant-Id
+      columns:
+        - name
+        - slug
+    comment: ""
+select_permissions:
+  - role: tenant_admin
+    permission:
+      columns:
+        - created_at
+        - deleted_at
+        - id
+        - name
+        - slug
+        - updated_at
+      filter:
+        id:
+          _eq: X-Hasura-Tenant-Id
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - created_at
+        - id
+        - name
+        - slug
+      filter:
+        _and:
+          - id:
+              _eq: X-Hasura-Tenant-Id
+          - deleted_at:
+              _is_null: true
+    comment: ""
+update_permissions:
+  - role: tenant_admin
+    permission:
+      columns:
+        - deleted_at
+        - name
+        - slug
+      filter:
+        id:
+          _eq: X-Hasura-Tenant-Id
+      check: null
+      set:
+        updated_at: now()
+    comment: ""
+delete_permissions:
+  - role: tenant_admin
+    permission:
+      filter:
+        id:
+          _eq: X-Hasura-Tenant-Id
+    comment: ""

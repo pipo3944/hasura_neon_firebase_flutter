@@ -1,0 +1,51 @@
+table:
+  name: post_status_types
+  schema: public
+array_relationships:
+  - name: posts
+    using:
+      foreign_key_constraint_on:
+        column: status
+        table:
+          name: posts
+          schema: public
+insert_permissions:
+  - role: tenant_admin
+    permission:
+      check: {}
+      columns:
+        - label
+        - sort_order
+        - value
+    comment: ""
+select_permissions:
+  - role: tenant_admin
+    permission:
+      columns:
+        - label
+        - sort_order
+        - value
+      filter: {}
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - sort_order
+        - label
+        - value
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: tenant_admin
+    permission:
+      columns:
+        - label
+        - sort_order
+      filter: {}
+      check: null
+    comment: ""
+delete_permissions:
+  - role: tenant_admin
+    permission:
+      filter: {}
+    comment: ""

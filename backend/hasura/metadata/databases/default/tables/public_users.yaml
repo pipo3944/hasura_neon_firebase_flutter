@@ -1,0 +1,138 @@
+table:
+  name: users
+  schema: public
+object_relationships:
+  - name: organization
+    using:
+      foreign_key_constraint_on: tenant_id
+  - name: user
+    using:
+      foreign_key_constraint_on: created_by
+  - name: userByUpdatedBy
+    using:
+      foreign_key_constraint_on: updated_by
+array_relationships:
+  - name: posts
+    using:
+      foreign_key_constraint_on:
+        column: created_by
+        table:
+          name: posts
+          schema: public
+  - name: postsByUpdatedBy
+    using:
+      foreign_key_constraint_on:
+        column: updated_by
+        table:
+          name: posts
+          schema: public
+  - name: postsByUserId
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: posts
+          schema: public
+  - name: users
+    using:
+      foreign_key_constraint_on:
+        column: created_by
+        table:
+          name: users
+          schema: public
+  - name: usersByUpdatedBy
+    using:
+      foreign_key_constraint_on:
+        column: updated_by
+        table:
+          name: users
+          schema: public
+insert_permissions:
+  - role: tenant_admin
+    permission:
+      check:
+        tenant_id:
+          _eq: X-Hasura-Tenant-Id
+      set:
+        created_at: now()
+        created_by: x-hasura-User-Id
+        tenant_id: x-hasura-Tenant-Id
+        updated_at: now()
+        updated_by: x-hasura-User-Id
+      columns:
+        - email
+        - id
+        - name
+        - role
+    comment: ""
+select_permissions:
+  - role: tenant_admin
+    permission:
+      columns:
+        - created_at
+        - created_by
+        - deleted_at
+        - email
+        - id
+        - name
+        - role
+        - tenant_id
+        - updated_at
+        - updated_by
+      filter:
+        tenant_id:
+          _eq: X-Hasura-Tenant-Id
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - created_by
+        - email
+        - name
+        - role
+        - updated_at
+      filter:
+        _and:
+          - id:
+              _eq: X-Hasura-User-Id
+          - deleted_at:
+              _is_null: true
+    comment: ""
+update_permissions:
+  - role: tenant_admin
+    permission:
+      columns:
+        - deleted_at
+        - email
+        - name
+        - role
+      filter:
+        tenant_id:
+          _eq: X-Hasura-Tenant-Id
+      check: null
+      set:
+        updated_at: now()
+        updated_by: x-hasura-User-Id
+    comment: ""
+  - role: user
+    permission:
+      columns:
+        - name
+      filter:
+        _and:
+          - id:
+              _eq: X-Hasura-User-Id
+          - deleted_at:
+              _is_null: true
+      check: null
+      set:
+        updated_at: now()
+        updated_by: x-hasura-User-Id
+    comment: ""
+delete_permissions:
+  - role: tenant_admin
+    permission:
+      filter:
+        tenant_id:
+          _eq: X-Hasura-Tenant-Id
+    comment: ""
