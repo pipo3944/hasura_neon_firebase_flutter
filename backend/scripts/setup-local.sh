@@ -54,6 +54,16 @@ else
   echo "ℹ️  No metadata found. You can export it using 'hasura metadata export'"
 fi
 
+# Check if seed data exists
+if [ -d "hasura/seeds" ] && [ "$(ls -A hasura/seeds)" ]; then
+  echo "🌱 Applying seed data..."
+  cd hasura
+  hasura seed apply --database-name default
+  echo "✅ Seed data applied"
+else
+  echo "ℹ️  No seed data found. You can create seeds using 'hasura seed create'"
+fi
+
 echo ""
 echo "🎉 Local environment is ready!"
 echo ""

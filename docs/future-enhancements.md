@@ -509,13 +509,57 @@ CREATE TABLE audit_log (
 - CI で自動実行
 - クリティカルパスのみテスト
 
-### 12. パフォーマンスモニタリング
+### 12. パーミッションテストの自動実行（pre-commit hook）
+
+**目的**: コミット前にパーミッションテストを自動実行し、権限設定の破壊的変更を検知
+
+**現状**:
+- `test-permissions.js` で手動実行
+- メタデータ変更時にテストを忘れる可能性
+
+**実装案**:
+
+1. **Huskyでpre-commit hook設定**:
+   ```bash
+   npm install --save-dev husky
+   npx husky install
+   npx husky add .husky/pre-commit "npm run test:permissions"
+   ```
+
+2. **package.jsonにスクリプト追加**:
+   ```json
+   {
+     "scripts": {
+       "test:permissions": "docker ps | grep hasura && node test-permissions.js || echo 'Skipping: Docker not running'"
+     }
+   }
+   ```
+
+3. **条件付き実行**:
+   - metadata変更時のみ実行（`git diff --cached`でチェック）
+   - Docker起動中のみ実行
+   - 失敗時はコミットを中止
+
+**メリット**:
+- 権限設定のバグを早期発見
+- レビュー前に自動検証
+- CIコストを削減（ローカルで検知）
+
+**デメリット**:
+- コミット時間が数秒増加
+- Docker未起動時はスキップが必要
+
+**代替案**: GitHub Actions で PR 時に自動実行
+
+**優先度**: Medium（検証PJでは不要だが、本番PJでは有用）
+
+### 13. パフォーマンスモニタリング
 
 - Cloud Monitoring
 - Hasura Pro の Analytics
 - Flutter アプリの APM（Firebase Performance Monitoring）
 
-### 13. GDPR対応（データエクスポート・削除）
+### 14. GDPR対応（データエクスポート・削除）
 
 - ユーザーデータの一括エクスポート機能
 - 完全削除機能（ソフトデリートではなく物理削除）

@@ -29,17 +29,38 @@
 
 - Docker & Docker Compose
 - Hasura CLI (`npm install -g hasura-cli` または [公式ドキュメント](https://hasura.io/docs/latest/hasura-cli/install-hasura-cli/))
-- Node.js 18+ (Hasura CLI用)
+- Node.js 18+ (Hasura CLI用、パーミッションテスト実行時)
 - Flutter SDK 3.10+ (アプリ開発時)
 
-### 1. リポジトリのクローン
+### オプションA：自動セットアップ（推奨）
+
+**1行でローカル環境を構築：**
+
+```bash
+git clone <repository-url>
+cd hasura_flutter/backend/scripts
+bash setup-local.sh
+```
+
+このスクリプトが自動で行うこと：
+- `.env` と `config.yaml` の作成（初回のみ）
+- Docker Compose でサービス起動
+- マイグレーション適用
+- メタデータ適用
+- シードデータ投入
+
+### オプションB：手動セットアップ（学習向け）
+
+各ステップを理解しながら進めたい場合：
+
+**1. リポジトリのクローン**
 
 ```bash
 git clone <repository-url>
 cd hasura_flutter
 ```
 
-### 2. 環境変数の設定
+**2. 環境変数の設定**
 
 ```bash
 # バックエンド用
@@ -51,7 +72,7 @@ cp backend/hasura/config.yaml.example backend/hasura/config.yaml
 # endpoint と admin_secret を編集
 ```
 
-### 3. ローカル環境の起動
+**3. ローカル環境の起動**
 
 ```bash
 cd backend
@@ -63,33 +84,56 @@ docker compose up -d
 - Hasura Console: `http://localhost:8080`
 - pgAdmin: `http://localhost:5050` (オプション)
 
-### 4. Hasura Console を開く
+**4. マイグレーションとメタデータの適用**
 
 ```bash
-cd backend/hasura
-hasura console
-```
-
-ブラウザで `http://localhost:9695` が開きます。
-
-### 5. 初期マイグレーションの適用（今後追加予定）
-
-```bash
-hasura migrate apply
+cd hasura
+hasura migrate apply --database-name default
 hasura metadata apply
 ```
 
+**5. シードデータの投入（オプション）**
+
+テスト用のデータを投入して、すぐに動作確認できます：
+
+```bash
+hasura seed apply --database-name default
+```
+
+投入されるデータ：
+- 組織2件（Acme Corp, Beta Inc）
+- ユーザー5件（admin, tenant_admin x2, user x2）
+- 投稿13件（ソフトデリート2件含む）
+
+---
+
 ### 動作確認
 
-Hasura Console の「API Explorer」で以下を実行：
+ブラウザで Hasura Console を開く：`http://localhost:8080/console`
+
+「API Explorer」で以下を実行（Admin Secret: `hasura_local_admin_secret`）：
 
 ```graphql
 query {
-  __typename
+  organizations {
+    id
+    name
+    slug
+  }
 }
 ```
 
-`{"data": {"__typename": "query_root"}}` が返れば成功です。
+組織データが返れば成功です！
+
+### 7. パーミッションテスト（オプション）
+
+JWT を使った各ロールのパーミッションをテスト：
+
+```bash
+cd backend
+npm install
+node test-permissions.js
+```
 
 ## ドキュメント
 
