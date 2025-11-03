@@ -1,10 +1,10 @@
 # プロジェクト進捗管理
 
-最終更新: 2025-10-27
+最終更新: 2025-11-03
 
-## 📍 現在のフェーズ: ローカル環境での動作確認完了 ✅
+## 📍 現在のフェーズ: Flutter開発環境セットアップ完了 ✅
 
-次のステップ: **Firebase Auth + Neon DB 設定**
+次のステップ: **Firebase Auth実装 + Hasura連携**
 
 ---
 
@@ -55,32 +55,92 @@
   - [x] 削除済みデータ（`deleted_at`）のフィルタ動作確認
   - [x] マルチテナント分離の確認
 
+### Flutter開発環境
+- [x] Flutter SDK インストール（fvm 3.35.7）
+- [x] Firebaseプロジェクト作成（dev/prod）
+- [x] Firebase設定ファイル配置
+  - [x] Android: `google-services.json`（dev/prod）
+  - [x] iOS: `GoogleService-Info.plist`（dev/prod）
+- [x] Flutter Flavor設定
+  - [x] Android: productFlavors設定（dev/prod）
+  - [x] iOS: Configurations & Schemes設定
+  - [x] Bundle Identifier設定（com.mizunoyusei.hasuraFlutter）
+  - [x] Firebase設定ファイル自動切り替えスクリプト
+- [x] iOS Deployment Target更新（15.0+）
+- [x] VS Code / Cursor デバッグ設定
+  - [x] `.vscode/launch.json`作成（6環境）
+  - [x] `.vscode/settings.json`作成（fvmパス設定）
+- [x] 実機テスト（iPhone 14）
+  - [x] 開発者証明書の信頼設定
+  - [x] dev環境でのアプリ起動確認
+
 ### ドキュメント
 - [x] アーキテクチャ概要（`docs/architecture.md`）
 - [x] 設計原則（`docs/design-principles.md`）
+  - [x] Flutter Flavor採用理由
+  - [x] fvm配置の決定理由
+  - [x] VS Code/Cursorデバッグ設定への参照
 - [x] データベース設計（`docs/database-design.md`）
 - [x] 認証・認可（`docs/authentication.md`）
-- [x] 開発フロー（`docs/development-flow.md`）- 実際のワークフローに更新
-- [x] トラブルシューティング（`docs/troubleshooting.md`）- CORS問題追記
-- [x] CLAUDE.md - tenant_adminロール、実際のワークフロー反映
+- [x] 開発フロー（`docs/development-flow.md`）
+  - [x] Backend専用に整理（Flutterセクション分離）
+  - [x] 実際のワークフローに更新
+- [x] **Flutter開発環境セットアップ（`docs/flutter-setup.md`）** - 新規作成
+  - [x] Firebase設定ファイル配置手順
+  - [x] Android/iOS Flavor設定詳細
+  - [x] VS Code/Cursorデバッグ設定
+  - [x] 実機テスト手順
+  - [x] GraphQL Code Generation手順
+- [x] トラブルシューティング（`docs/troubleshooting.md`）
+  - [x] CORS問題追記
+  - [x] Flutter関連エラー7件追加
+    - iOS Deployment Target エラー
+    - Ruby エンコーディングエラー
+    - GoogleService-Info.plist Not Found
+    - Bundle ID Registration Failed
+    - Certificate Trust Error
+    - Scheme Name Mismatch
+    - VS Code デバッグパスエラー
+- [x] CLAUDE.md
+  - [x] tenant_adminロール、実際のワークフロー反映
+  - [x] ドキュメントナビゲーション整理（Backend/Frontend/General分類）
+- [x] README.md - Flutter開発環境セットアップへのリンク追加
 
 ---
 
 ## 🚧 次にやるべきこと（優先順位順）
 
-### 1. Firebase Auth 設定 🎯 **← 次はここ！**
-- [ ] Firebase プロジェクト作成
-  - [ ] dev環境用プロジェクト（`myproject-dev`）
-  - [ ] prod環境用プロジェクト（`myproject-prod`）
-- [ ] Authentication 有効化
+### 1. Firebase Auth 実装 🎯 **← 次はここ！**
+- [x] Firebase プロジェクト作成
+  - [x] dev環境用プロジェクト
+  - [x] prod環境用プロジェクト
+- [ ] Flutter での Firebase Auth 初期化
+  - [ ] `firebase_core` パッケージ設定
+  - [ ] `firebase_auth` パッケージ設定
+  - [ ] Flavor別の初期化処理
+- [ ] 認証フロー実装
   - [ ] Email/Password 認証
-  - [ ] Google 認証（オプション）
-- [ ] Custom Claims 設定準備
+  - [ ] ログイン/ログアウト画面
+  - [ ] ユーザー登録画面
+- [ ] Hasura との連携
+  - [ ] ID Token の取得
+  - [ ] GraphQL クライアント設定（Authorization ヘッダー）
+  - [ ] Token 自動リフレッシュ
+- [ ] Custom Claims 設定（後回しも可）
   - [ ] Cloud Functions プロジェクト作成
   - [ ] setCustomUserClaims 関数実装
-- [ ] JWT Secret 設定
-  - [ ] Hasura の `HASURA_GRAPHQL_JWT_SECRET` 設定
-  - [ ] RS256 公開鍵設定
+  - [ ] role, tenant_id の設定
+
+### 2. GraphQL Code Generation & 基本的なCRUD実装
+- [ ] GraphQL クエリ定義（`.graphql` ファイル）
+  - [ ] ユーザー情報取得
+  - [ ] 投稿一覧取得
+  - [ ] 投稿作成・更新・削除
+- [ ] Code Generation 実行
+- [ ] 基本的な画面実装
+  - [ ] ホーム画面（投稿一覧）
+  - [ ] 投稿詳細画面
+  - [ ] 投稿作成・編集画面
 
 ### 3. Neon DB 設定
 - [ ] Neon アカウント作成
@@ -106,15 +166,6 @@
   - [ ] スモークテスト
 - [ ] prod 手動デプロイワークフロー
 
-### 6. Flutter アプリ開発
-- [ ] Flutter プロジェクト作成
-- [ ] パッケージ追加
-  - [ ] `graphql_flutter`
-  - [ ] `firebase_auth`
-  - [ ] `firebase_core`
-- [ ] GraphQL Code Generation 設定
-- [ ] 認証フロー実装
-- [ ] 基本的なCRUD画面実装
 
 ---
 
@@ -122,24 +173,31 @@
 
 ### Local（ローカル開発環境）
 - **状態**: ✅ 完全動作確認済み
-- **DB**: Docker Compose Postgres
-- **Hasura**: Docker Compose（`localhost:8080`）
-- **マイグレーション**: 適用済み（5 migrations）
-- **メタデータ**: エクスポート済み
-- **シードデータ**: 投入済み（組織2件、ユーザー5件、投稿13件）
-- **パーミッションテスト**: 全ロール合格
+- **Backend**:
+  - **DB**: Docker Compose Postgres
+  - **Hasura**: Docker Compose（`localhost:8080`）
+  - **マイグレーション**: 適用済み（5 migrations）
+  - **メタデータ**: エクスポート済み
+  - **シードデータ**: 投入済み（組織2件、ユーザー5件、投稿13件）
+  - **パーミッションテスト**: 全ロール合格
+- **Frontend**:
+  - **Flutter**: 3.35.7（fvm管理）
+  - **Firebase**: dev/prodプロジェクト作成済み
+  - **Flavor**: dev/prod設定完了（Android/iOS）
+  - **デバッグ環境**: VS Code/Cursor設定完了
+  - **実機テスト**: iPhone 14 で動作確認済み
 
 ### Dev（開発環境）
 - **状態**: ❌ 未構築
 - **DB**: Neon（未作成）
 - **Hasura**: Cloud Run（未デプロイ）
-- **Firebase**: 未作成
+- **Firebase**: プロジェクト作成済み、Auth未実装
 
 ### Prod（本番環境）
 - **状態**: ❌ 未構築
 - **DB**: Neon（未作成）
 - **Hasura**: Cloud Run（未デプロイ）
-- **Firebase**: 未作成
+- **Firebase**: プロジェクト作成済み、Auth未実装
 
 ---
 
@@ -160,13 +218,14 @@
 
 ## 🎯 マイルストーン
 
-- [x] **M1: ローカル環境構築** ← 完了！
-- [x] **M2: ローカル環境での動作確認** ← 完了！
-- [ ] **M3: Firebase Auth + Neon DB 設定** ← 次はここ
-- [ ] **M4: Dev環境デプロイ**
-- [ ] **M5: Flutter アプリ初期実装**
-- [ ] **M6: CI/CD構築**
-- [ ] **M7: Prod環境デプロイ**
+- [x] **M1: ローカル環境構築（Backend）** ← 完了！
+- [x] **M2: ローカル環境での動作確認（Backend）** ← 完了！
+- [x] **M3: Flutter開発環境セットアップ** ← 完了！
+- [ ] **M4: Firebase Auth実装 + Hasura連携** ← 次はここ
+- [ ] **M5: 基本的なCRUD実装**
+- [ ] **M6: Neon DB設定 + Dev環境デプロイ**
+- [ ] **M7: CI/CD構築**
+- [ ] **M8: Prod環境デプロイ**
 
 ---
 
@@ -180,8 +239,7 @@
 - [ ] Materialized View の活用検討
 
 ### ドキュメント追記予定
-- [ ] シードデータ作成方法（`docs/development-flow.md`）
-- [ ] Firebase Auth 連携手順（`docs/authentication.md`）
+- [ ] Firebase Auth 実装詳細（`docs/authentication.md`）
 - [ ] Neon DB セットアップ手順（`docs/environment.md`）
 - [ ] デプロイ手順詳細（`docs/deployment.md`）
 
@@ -189,11 +247,19 @@
 
 ## 🔗 クイックリンク
 
+### プロジェクト全体
 - [README](./README.md) - プロジェクト概要
 - [CLAUDE.md](./CLAUDE.md) - Claude Code 向けコンテキスト
-- [開発フロー](./docs/development-flow.md) - 実際の開発手順
-- [トラブルシューティング](./docs/troubleshooting.md) - 問題解決方法
 - [設計原則](./docs/design-principles.md) - 技術選定の理由
+
+### Backend開発
+- [開発フロー](./docs/development-flow.md) - Hasura開発手順・マイグレーション管理
+
+### Frontend開発
+- [Flutter環境セットアップ](./docs/flutter-setup.md) - Firebase/Flavor設定・デバッグ環境
+
+### トラブルシューティング
+- [トラブルシューティング](./docs/troubleshooting.md) - Backend/Frontend共通の問題解決方法
 
 ---
 

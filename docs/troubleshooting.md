@@ -575,6 +575,228 @@ FATAL: too many connections for role "user"
 
 ## Flutter アプリ関連
 
+### iOS Deployment Target エラー
+
+**症状**:
+```
+Error: The plugin 'firebase_core' requires a higher minimum iOS deployment version than your application is targeting.
+To build, increase your application's deployment target to at least 15.0
+```
+
+**原因**: Firebase Core パッケージが iOS 15.0 以上を要求しているが、プロジェクトの Deployment Target が古い（13.0等）
+
+**解決**:
+
+1. `app/ios/Podfile` を編集:
+```ruby
+# 変更前
+# platform :ios, '13.0'
+
+# 変更後
+platform :ios, '15.0'
+
+# post_install にも追加
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+    end
+  end
+end
+```
+
+2. CocoaPods を再インストール:
+```bash
+cd app/ios
+export LANG=en_US.UTF-8  # Ruby エンコーディングエラー回避
+pod install
+```
+
+---
+
+### Ruby エンコーディングエラー（pod install時）
+
+**症状**:
+```
+Unicode Normalization not appropriate for ASCII-8BIT
+```
+
+**原因**: Ruby のロケール設定が ASCII になっている
+
+**解決**:
+
+pod install 実行前に環境変数を設定:
+```bash
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+pod install
+```
+
+または、`.zshrc` / `.bashrc` に追記して恒久的に設定:
+```bash
+echo 'export LANG=en_US.UTF-8' >> ~/.zshrc
+echo 'export LC_ALL=en_US.UTF-8' >> ~/.zshrc
+source ~/.zshrc
+```
+
+---
+
+### GoogleService-Info.plist Not Found（iOS）
+
+**症状**:
+```
+Build input file cannot be found: '/Users/.../ios/Runner/GoogleService-Info.plist'
+```
+
+**原因**: Firebase 設定ファイルが存在しないか、Run Script で正しくコピーされていない
+
+**解決**:
+
+1. Firebase 設定ファイルが正しい場所に配置されているか確認:
+```bash
+ls app/ios/Runner/Dev/GoogleService-Info.plist
+ls app/ios/Runner/Prod/GoogleService-Info.plist
+```
+
+2. Xcode の Build Phases に Run Script を追加（"Compile Sources" の前）:
+```bash
+# Firebase GoogleService-Info.plist switcher
+PLIST_DESTINATION="${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/GoogleService-Info.plist"
+RUNNER_DIR="${SRCROOT}/Runner"
+RUNNER_PLIST="${RUNNER_DIR}/GoogleService-Info.plist"
+
+if [[ "${CONFIGURATION}" == *"dev"* ]] || [[ "${CONFIGURATION}" == "Debug" ]] || [[ "${CONFIGURATION}" == "Profile" ]]; then
+  echo "Using Dev Firebase configuration"
+  cp "${RUNNER_DIR}/Dev/GoogleService-Info.plist" "${RUNNER_PLIST}"
+  cp "${RUNNER_DIR}/Dev/GoogleService-Info.plist" "${PLIST_DESTINATION}" 2>/dev/null || true
+elif [[ "${CONFIGURATION}" == *"prod"* ]] || [[ "${CONFIGURATION}" == "Release" ]]; then
+  echo "Using Prod Firebase configuration"
+  cp "${RUNNER_DIR}/Prod/GoogleService-Info.plist" "${RUNNER_PLIST}"
+  cp "${RUNNER_DIR}/Prod/GoogleService-Info.plist" "${PLIST_DESTINATION}" 2>/dev/null || true
+else
+  echo "⚠️ Unknown configuration: ${CONFIGURATION}"
+  cp "${RUNNER_DIR}/Dev/GoogleService-Info.plist" "${RUNNER_PLIST}"
+fi
+echo "✅ Copied GoogleService-Info.plist for ${CONFIGURATION}"
+```
+
+**ポイント**:
+- スクリプトは2箇所にコピー（`Runner/` と `build output`）
+- これにより、Xcode のビルドシステムがファイルを見つけられる
+
+---
+
+### Bundle ID Registration Failed（iOS）
+
+**症状**:
+```
+The app identifier 'com.example.hasuraFlutter.dev' cannot be registered to your development team because it is not available.
+```
+
+**原因**: `com.example` は Apple によって予約されており、個人アカウントでは登録できない
+
+**解決**:
+
+1. Xcode でプロジェクト設定 → Signing & Capabilities を開く
+
+2. 各 Configuration の Bundle Identifier を変更:
+```
+com.example.hasuraFlutter.dev  →  com.yourname.hasuraFlutter.dev
+com.example.hasuraFlutter      →  com.yourname.hasuraFlutter
+```
+
+3. Android側も合わせて変更（`app/android/app/build.gradle.kts`）:
+```kotlin
+android {
+    namespace = "com.yourname.hasura_flutter"
+    defaultConfig {
+        applicationId = "com.yourname.hasura_flutter"
+    }
+}
+```
+
+4. MainActivity のパッケージも移動:
+```bash
+# 旧: app/android/app/src/main/kotlin/com/example/hasura_flutter/MainActivity.kt
+# 新: app/android/app/src/main/kotlin/com/yourname/hasura_flutter/MainActivity.kt
+
+# MainActivity.kt 内のパッケージ宣言も変更
+package com.yourname.hasura_flutter
+```
+
+---
+
+### Certificate Trust Error（実機テスト時）
+
+**症状**:
+```
+Unable to launch com.example.hasuraFlutter.dev because it has an invalid code signature, inadequate entitlements or its profile has not been explicitly trusted by the user.
+```
+
+**原因**: 開発用証明書が iPhone 上で信頼されていない
+
+**解決**:
+
+iPhone の設定で開発者を信頼:
+
+1. iPhone で「設定」を開く
+2. 「一般」→「VPNとデバイス管理」または「プロファイルとデバイス管理」
+3. 開発者アプリのセクションで自分のApple IDを選択
+4. 「信頼」をタップ
+
+その後、アプリを再度起動する。
+
+---
+
+### Scheme Name Mismatch（Flutter実行時）
+
+**症状**:
+```
+Error: The Xcode project defines schemes: Runner, Runner-dev, Runner-prod
+You must specify a --flavor option to select one of the available schemes.
+```
+
+**原因**: Xcode の Scheme 名が Flutter の Flavor 名と一致していない
+
+**解決**:
+
+Xcode で Scheme を Flavor 名に合わせてリネーム:
+
+1. Product → Scheme → Manage Schemes
+2. Scheme を以下のようにリネーム:
+   - `Runner-dev` → `dev`
+   - `Runner-prod` → `prod`
+3. 保存
+
+その後、`flutter run --flavor dev` が正常に動作する。
+
+---
+
+### VS Code / Cursor デバッグでファイルが見つからない
+
+**症状**:
+```
+Target file "/Users/.../app/app/lib/main.dart" not found.
+```
+
+**原因**: `.vscode/launch.json` で `"cwd": "app"` と `"program": "app/lib/main.dart"` を同時に指定しており、パスが二重になっている
+
+**解決**:
+
+`.vscode/launch.json` を修正:
+```json
+{
+  "name": "Flutter Dev (Debug)",
+  "cwd": "app",
+  "program": "lib/main.dart"  // ← "app/" を削除
+}
+```
+
+**ポイント**: `program` は `cwd` からの相対パスで指定する
+
+---
+
 ### 「NetworkException: Failed to connect」
 
 **症状**: Flutter アプリから Hasura にアクセスできない

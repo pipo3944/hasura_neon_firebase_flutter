@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "173007583913",
+    "project_id": "hasura-flutter-prod",
+    "storage_bucket": "hasura-flutter-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:173007583913:android:421414d97faf471123c7b8",
+        "android_client_info": {
+          "package_name": "com.example.hasuraFlutter.prod"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP91umSHFglkQ9rw_KLCN_Erk6_OpyTg4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

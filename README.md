@@ -146,7 +146,8 @@ node test-permissions.js
 
 ### 環境・運用
 - [環境構成](docs/environment.md) - local/dev/prod の定義と使い分け
-- [開発フロー](docs/development-flow.md) - ローカル開発・マイグレーション管理
+- [開発フロー（Backend）](docs/development-flow.md) - Hasura ローカル開発・マイグレーション管理
+- [Flutter開発環境のセットアップ](docs/flutter-setup.md) - Firebase/Flavor設定・デバッグ環境
 - [デプロイフロー](docs/deployment.md) - CI/CD パイプライン・デプロイ手順
 
 ### セキュリティ

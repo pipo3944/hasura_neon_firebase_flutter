@@ -473,6 +473,74 @@ curl -X POST $HASURA_ENDPOINT/v1/graphql \
 
 ---
 
+## Flutter アプリの環境分離
+
+### Flutter Flavor の採用
+
+**決定**: Android productFlavors / iOS Schemes による環境分離を採用
+
+**採用理由**:
+- Dev/Prod を同時インストール可能（実機で比較テスト）
+- アプリ名・アイコンで環境を視覚的に区別
+- Firebase設定ファイルが自動切り替え（人為ミス防止）
+- **検証プロジェクトとして、実践的な構成パターンを示す**
+
+**トレードオフ**:
+- 初期設定コストが高い（Android/iOSのネイティブ設定が必要）
+- 小規模プロジェクトには過剰な場合もある
+- **→ しかし、スケールする構成を最初から確立する価値がある**
+
+### パッケージ名・Bundle ID
+
+| 環境 | Android Package | iOS Bundle ID |
+|------|----------------|---------------|
+| Dev | com.example.hasuraFlutter.dev | com.example.hasuraFlutter.dev |
+| Prod | com.example.hasuraFlutter.prod | com.example.hasuraFlutter.prod |
+
+サフィックス（.dev/.prod）により、別アプリとして認識される。
+
+### Firebase設定ファイル管理
+
+**決定**: google-services.json / GoogleService-Info.plist は **gitにコミット**
+
+**配置場所**:
+```
+app/android/app/src/dev/google-services.json
+app/android/app/src/prod/google-services.json
+app/ios/Runner/Dev/GoogleService-Info.plist
+app/ios/Runner/Prod/GoogleService-Info.plist
+```
+
+**理由**:
+- Firebase API Key は公開情報として設計されている
+- セキュリティは Firebase Rules / Hasura Permissions で担保
+- チーム開発での利便性（即座にビルド可能）
+
+**Flavorにより、ビルド時に自動で適切なファイルが選択される**
+
+### 開発ツールの設定
+
+**VS Code / Cursor デバッグ設定**:
+
+プロジェクトルートに `.vscode/launch.json` を配置することで、GUIから環境（dev/prod）とモード（Debug/Profile/Release）を選択してデバッグ実行できます。
+
+詳細な設定方法は [flutter-setup.md の「VS Code / Cursor からデバッグ実行」](flutter-setup.md#vs-code--cursor-からデバッグ実行) を参照してください。
+
+**fvm (Flutter Version Manager) の配置**:
+
+**決定**: `.fvm` ディレクトリは **プロジェクトルート** に配置
+
+**理由**:
+- Monorepo全体で同じFlutterバージョンを使用（backend/app共通）
+- プロジェクトルートで `fvm list` によりバージョン確認が容易
+- CI/CDで `.fvm/flutter_sdk` を直接参照可能
+- `.vscode/settings.json` から `"dart.flutterSdkPath": ".fvm/flutter_sdk"` で参照
+
+**代替案（採用しなかった理由）**:
+- `app/.fvm` に配置: Flutter プロジェクトの依存関係が app/ 内で完結するが、プロジェクトルートでのバージョン確認が不便
+
+---
+
 ## 環境変数管理
 
 **決定**:

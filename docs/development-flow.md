@@ -78,6 +78,21 @@ hasura console
 
 ---
 
+## Flutter 開発環境のセットアップ
+
+Flutter アプリの開発環境セットアップ（Firebase設定、Flavor設定、デバッグ環境）については、専用ドキュメントを参照してください:
+
+**→ [Flutter開発環境のセットアップ (flutter-setup.md)](flutter-setup.md)**
+
+内容:
+- Firebase 設定ファイルの配置
+- Flutter Flavor 設定（Android/iOS）
+- VS Code / Cursor デバッグ設定
+- 実機テスト
+- GraphQL Code Generation
+
+---
+
 ## ⚠️ Hasura Console の2種類と使い分け
 
 Hasuraには**2つの異なるConsole**があります。混同しやすいので注意してください。
@@ -534,85 +549,6 @@ hasura migrate apply
 
 - **マイグレーション**: DB構造の変更（テーブル、カラム、インデックス）
 - **メタデータ**: Hasuraの設定（パーミッション、リレーション、Computed Fields）
-
----
-
-## Flutter アプリ開発との連携
-
-### GraphQL スキーマの自動生成
-
-1. **`.graphql` ファイルを作成**:
-
-`app/graphql/posts.graphql`:
-```graphql
-query GetPosts($tenantId: uuid!) {
-  posts(
-    where: {
-      tenant_id: { _eq: $tenantId }
-      deleted_at: { _is_null: true }
-    }
-    order_by: { created_at: desc }
-  ) {
-    id
-    title
-    content
-    created_at
-    user {
-      id
-      name
-    }
-  }
-}
-
-mutation CreatePost($tenantId: uuid!, $title: String!, $content: String!) {
-  insert_posts_one(
-    object: {
-      tenant_id: $tenantId
-      title: $title
-      content: $content
-      status: "draft"
-    }
-  ) {
-    id
-    title
-  }
-}
-```
-
-2. **コード生成**:
-
-```bash
-cd app
-flutter pub run build_runner build --delete-conflicting-outputs
-```
-
-生成されるファイル:
-```
-app/lib/generated/
-├── posts.graphql.dart
-└── ...
-```
-
-3. **Flutter で使用**:
-
-```dart
-import 'package:app/generated/posts.graphql.dart';
-
-// クエリ実行
-final result = await client.query$GetPosts(
-  Options$Query$GetPosts(
-    variables: Variables$Query$GetPosts(
-      tenantId: currentTenantId,
-    ),
-  ),
-);
-
-if (result.hasException) {
-  // エラーハンドリング
-}
-
-final posts = result.parsedData?.posts ?? [];
-```
 
 ---
 

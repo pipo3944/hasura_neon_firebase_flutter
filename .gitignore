@@ -5,11 +5,14 @@
 *.env
 
 # IDE
-.vscode/
+# .vscode/  ← デバッグ設定を共有するためコメントアウト
 .idea/
 *.swp
 *.swo
 *~
+
+# MCP設定（ローカル環境固有）
+.mcp.json
 
 # OS
 .DS_Store
@@ -62,3 +65,7 @@ coverage/
 # Temporary files
 tmp/
 temp/
+ref/
+
+# FVM Version Cache
+.fvm/

@@ -125,11 +125,11 @@ bash scripts/smoke-test.sh
 ```bash
 cd app
 
-# Run with environment variables
-flutter run \
-  --dart-define=HASURA_ENDPOINT=https://hasura-dev.example.com/v1/graphql \
-  --dart-define=FIREBASE_PROJECT_ID=myproject-dev \
-  --dart-define=ENV=dev
+# Run with Flavor
+flutter run --flavor dev
+
+# Prod environment
+flutter run --flavor prod --release
 
 # GraphQL code generation
 flutter pub run build_runner build --delete-conflicting-outputs
@@ -251,6 +251,14 @@ backend/
 └── docker-compose.yml       # Postgres + Hasura + pgAdmin
 
 app/
+├── android/app/
+│   ├── build.gradle                    # Flavor設定（productFlavors）
+│   └── src/
+│       ├── dev/google-services.json    # Dev環境用Firebase設定（gitにコミット）
+│       └── prod/google-services.json   # Prod環境用Firebase設定（gitにコミット）
+├── ios/Runner/
+│   ├── Dev/GoogleService-Info.plist    # Dev環境用Firebase設定（gitにコミット）
+│   └── Prod/GoogleService-Info.plist   # Prod環境用Firebase設定（gitにコミット）
 ├── graphql/                 # .graphql query definitions (for code generation)
 ├── lib/generated/           # Auto-generated Dart code (gitignored)
 └── .env.dev.example         # Environment templates
@@ -357,11 +365,18 @@ Both run smoke tests after deployment:
 
 ## Documentation Navigation
 
+### Backend / Hasura
 - **Architecture questions**: See `docs/architecture.md`
 - **Design decisions**: See `docs/design-principles.md`
 - **DB schema questions**: See `docs/database-design.md`
-- **Auth issues**: See `docs/authentication.md`
+- **Development workflow**: See `docs/development-flow.md`
 - **Deployment issues**: See `docs/deployment.md`
-- **Errors**: See `docs/troubleshooting.md`
+
+### Frontend / Flutter
+- **Flutter environment setup**: See `docs/flutter-setup.md`
+- **Auth implementation**: See `docs/authentication.md`
+
+### General
+- **Errors & troubleshooting**: See `docs/troubleshooting.md`
 
 All architecture diagrams use mermaid syntax and are embedded in markdown files.
