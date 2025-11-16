@@ -469,7 +469,7 @@ curl -X POST $HASURA_ENDPOINT/v1/graphql \
 - 手動承認後、prod workflow を実行
 - 本番DBへの適用前にバックアップ確認
 
-詳細は [デプロイフロー](deployment.md) を参照。
+詳細は [CI/CD設定](../deployment/ci-cd.md) を参照。
 
 ---
 
@@ -524,7 +524,7 @@ app/ios/Runner/Prod/GoogleService-Info.plist
 
 プロジェクトルートに `.vscode/launch.json` を配置することで、GUIから環境（dev/prod）とモード（Debug/Profile/Release）を選択してデバッグ実行できます。
 
-詳細な設定方法は [flutter-setup.md の「VS Code / Cursor からデバッグ実行」](flutter-setup.md#vs-code--cursor-からデバッグ実行) を参照してください。
+詳細な設定方法は [Flutter環境セットアップ](../getting-started/frontend-setup.md) を参照してください。
 
 **fvm (Flutter Version Manager) の配置**:
 

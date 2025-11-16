@@ -249,8 +249,8 @@ Neonでは、Hasuraのマイグレーション管理テーブル（`hdb_catalog`
 
 Neon DBのセットアップが完了したら、次は:
 
-1. [Cloud Run Hasura デプロイ](deployment.md) - HasuraをCloud Runにデプロイ
-2. [CI/CD構築](deployment.md#dev-環境への自動デプロイ) - 自動デプロイパイプライン構築
+1. [Cloud Run Hasura デプロイ](../deployment/cloud-run-deployment.md) - HasuraをCloud Runにデプロイ
+2. [CI/CD構築](../deployment/ci-cd.md) - 自動デプロイパイプライン構築
 
 ## 参考リンク
 

@@ -29,7 +29,7 @@ fvm use 3.35.7 --force
 fvm flutter --version
 ```
 
-**fvm 配置の理由**: [design-principles.md の「fvm配置」](design-principles.md#開発ツールの設定) を参照
+**fvm 配置の理由**: [設計原則](../reference/design-principles.md) を参照
 
 ---
 
@@ -110,7 +110,7 @@ Firebase Console で dev/prod 用の2つのプロジェクトを作成し、設�
 
 Flutter Flavor を使用することで、dev/prod 環境を同時にインストールでき、異なるFirebaseプロジェクトに接続できます。
 
-**採用理由**: [design-principles.md の「Flutter アプリの環境分離」](design-principles.md#flutter-アプリの環境分離) を参照
+**採用理由**: [設計原則](../reference/design-principles.md) を参照
 
 ---
 

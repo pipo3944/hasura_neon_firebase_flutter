@@ -48,10 +48,9 @@ graph TB
 - 型安全なデータ操作（graphql_codegen使用）
 
 **技術スタック**:
-- Flutter SDK 3.10+
-- `graphql_flutter` - GraphQLクライアント
-- `graphql_codegen` - 型生成
-- `firebase_auth` - 認証
+- Flutter
+- GraphQL クライアント（型安全な通信）
+- Firebase Auth SDK
 
 **責務の範囲**:
 - ビジネスロジックの一部（UI状態管理、バリデーション）
@@ -89,10 +88,6 @@ graph TB
 - **スキーマ自動生成**: DB構造から GraphQL スキーマを自動生成
 - **リレーション**: 外部キーから GraphQL のネスト構造を自動作成
 
-**デプロイ先**:
-- **local**: Docker Compose
-- **dev/prod**: Cloud Run
-
 **責務の範囲**:
 - API エンドポイント提供
 - 認可ルールの適用
@@ -110,11 +105,6 @@ graph TB
 - **ブランチ機能**で環境分離が容易
 - スケーリング自動対応
 - バックアップ・PITR（ポイントインタイムリカバリ）標準装備
-
-**ブランチ構成**:
-- **main（prod）**: 本番データ
-- **dev**: 開発・統合テスト用
-- **local**: Docker Postgres（Neon使わない選択肢もあり）
 
 **責務の範囲**:
 - データの保存・取得
@@ -217,7 +207,7 @@ graph LR
 | **dev** | 統合検証・実機テスト | Neon dev branch | Cloud Run | dev |
 | **prod** | 本番運用 | Neon main branch | Cloud Run | prod |
 
-詳細は [環境構成ドキュメント](environment.md) を参照。
+詳細は [環境構成](environments.md) を参照。
 
 ## CI/CD パイプライン概要
 
@@ -241,7 +231,7 @@ graph LR
     style ProdActions fill:#FF9800
 ```
 
-詳細は [デプロイフロー](deployment.md) を参照。
+詳細は [CI/CD設定](../deployment/ci-cd.md) を参照。
 
 ## セキュリティレイヤー
 
@@ -271,7 +261,7 @@ graph TB
 2. **Hasuraパーミッション**: ロール・ユーザーID・テナントIDでフィルタリング
 3. **（オプション）PostgreSQL RLS**: Hasura経由以外のアクセスに備えた二重防御
 
-詳細は [認証・認可ドキュメント](authentication.md) を参照。
+詳細は [認証・認可の設計](../reference/authentication-design.md) を参照。
 
 ## スケーラビリティ戦略
 
@@ -296,4 +286,4 @@ graph TB
 - **環境分離**: local/dev/prod で安全な開発サイクル
 - **拡張性**: 初期は最小構成、必要に応じて機能追加
 
-次は [設計原則・決定事項](design-principles.md) で具体的な実装方針を確認してください。
+次は [設計原則](../reference/design-principles.md) で具体的な実装方針を確認してください。
