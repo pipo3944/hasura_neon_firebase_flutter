@@ -1,10 +1,10 @@
 # プロジェクト進捗管理
 
-最終更新: 2025-11-16
+最終更新: 2025-11-17
 
-## 📍 現在のフェーズ: Firebase Auth実装（Phase 5）完了 ✅
+## 📍 現在のフェーズ: Cloud Run Hasura デプロイ完了 ✅
 
-次のステップ: **Neon DB + Cloud Run デプロイ（Dev環境構築）**
+次のステップ: **GraphQL Code Generation & 基本的なCRUD実装**
 
 ---
 
@@ -164,7 +164,7 @@
     - Cloud FunctionsがローカルHasuraにアクセスできないため
     - 次のフェーズ（Cloud Run デプロイ）で解決予定
 
-### 2. Neon DB + Cloud Run デプロイ（dev環境構築） 🎯 **← 次はここ！**
+### 2. Neon DB + Cloud Run デプロイ（dev環境構築） ✅ **← 完了！**
 
 #### Step 1: Neon DB セットアップ ✅
 - [x] Neon アカウント作成
@@ -179,39 +179,51 @@
   - [x] テストデータ投入完了（組織2件、ユーザー5件、投稿13件）
 - [x] ドキュメント作成（`docs/neon-setup.md`）
 
-#### Step 2: Cloud Run Hasura デプロイ
-- [ ] Google Cloud プロジェクト確認/作成
-- [ ] Secret Manager 設定
-  - [ ] `HASURA_GRAPHQL_DATABASE_URL`（Neon接続文字列）
-  - [ ] `HASURA_GRAPHQL_ADMIN_SECRET`（新規生成）
-  - [ ] `HASURA_GRAPHQL_JWT_SECRET`（Firebase RS256設定）
-- [ ] Cloud Run サービス作成
-  - [ ] Hasura イメージ指定（`hasura/graphql-engine:v2.x`）
-  - [ ] 環境変数・Secret設定
-  - [ ] 公開アクセス許可
-- [ ] デプロイ & ヘルスチェック
+#### Step 2: Cloud Run Hasura デプロイ ✅
+- [x] Google Cloud プロジェクト確認（hasura-flutter-dev）
+- [x] Secret Manager 設定
+  - [x] Secret Manager API有効化
+  - [x] `HASURA_GRAPHQL_DATABASE_URL`（Neon接続文字列）
+  - [x] `HASURA_GRAPHQL_ADMIN_SECRET`（生成: `b69a65d...`）
+  - [x] `HASURA_GRAPHQL_JWT_SECRET`（Firebase RS256設定、claims_map対応）
+  - [x] 改行問題の解決（`tr -d '\n'` 使用）
+- [x] Cloud Run サービスアカウント作成
+  - [x] `hasura-dev` サービスアカウント作成
+  - [x] Secret Manager Accessor権限付与
+- [x] Cloud Run サービス作成・デプロイ
+  - [x] Hasura v2.36.0 デプロイ
+  - [x] 環境変数設定（YAMLファイル方式）
+  - [x] Secret Manager経由でシークレット設定
+  - [x] 公開アクセス許可
+  - [x] **URL**: https://hasura-dev-708502679003.asia-northeast1.run.app
+- [x] デプロイ & ヘルスチェック確認
+- [x] マイグレーション・メタデータ適用
+  - [x] `hasura migrate apply --skip-execution`（既存テーブル対応）
+  - [x] `hasura metadata apply`
 
-#### Step 3: Cloud Functions 設定更新
-- [ ] Cloud Functions 環境変数更新
-  - [ ] `hasura.endpoint` → Cloud Run URL
-  - [ ] `hasura.admin_secret` → 新規生成したシークレット
-- [ ] 再デプロイ
-  - [ ] `firebase deploy --only functions`
+#### Step 3: Cloud Functions 設定更新 ✅
+- [x] Cloud Functions 環境変数更新
+  - [x] `HASURA_GRAPHQL_ENDPOINT` → Cloud Run URL
+  - [x] `HASURA_GRAPHQL_ADMIN_SECRET` → 新規生成シークレット
+- [x] `.gcloudignore` 問題解決（`lib/` ディレクトリ除外を修正）
+- [x] 再デプロイ
+  - [x] `setCustomClaimsOnCreate` デプロイ完了
+  - [x] `refreshCustomClaims` デプロイ完了
 
-#### Step 4: Flutter アプリ設定更新
-- [ ] `app/.env.dev` 更新
-  - [ ] `HASURA_ENDPOINT` → Cloud Run URL
-- [ ] アプリ再起動・動作確認
+#### Step 4: Flutter アプリ設定更新 ✅
+- [x] `app/.env.dev` 更新
+  - [x] `HASURA_ENDPOINT` → `https://hasura-dev-708502679003.asia-northeast1.run.app/v1/graphql`
 
-#### Step 5: 完全なE2Eテスト
-- [ ] サインアップテスト（組織コードなし）
-- [ ] サインアップテスト（組織コード入力）
-- [ ] Custom Claims設定確認（Cloud Functions → Hasura）
-- [ ] JWT検証確認（Flutter → Hasura）
-- [ ] ユーザー情報取得（GraphQL クエリ）
-- [ ] パーミッションテスト
-  - [ ] user ロール: 自分のデータのみ
-  - [ ] tenant_admin ロール: テナント内全データ
+#### Step 5: 完全なE2Eテスト ✅
+- [x] 匿名アクセステスト（正しく拒否される）
+- [x] Admin Secretアクセステスト（全データ取得成功）
+- [x] データ確認
+  - [x] Organizations: 2件
+  - [x] Users: 5件（各ロール）
+  - [x] Posts: 13件（削除済み含む）
+- [x] リレーションシップ動作確認
+- [x] パーミッション設定確認（user/tenant_admin/admin）
+- [ ] 実機テスト（Flutter → Cloud Run Hasura）← 次回実施
 
 ### 3. GraphQL Code Generation & 基本的なCRUD実装
 - [ ] GraphQL クエリ定義（`.graphql` ファイル）
@@ -260,19 +272,28 @@
   - **Note**: ローカル環境はDB開発用。アプリテストは次フェーズでDev環境を使用
 
 ### Dev（開発環境）
-- **状態**: ⚠️ 部分的構築（Neon DB + Cloud Functions）
+- **状態**: ✅ 完全構築（Neon DB + Cloud Run Hasura + Cloud Functions）
 - **DB**: Neon ✅
   - プロジェクト: `hasura-flutter`
   - ブランチ: `development` (AWS Singapore)
   - マイグレーション: 適用済み（6件）
   - データ: 組織2件、ユーザー5件、投稿13件
-- **Hasura**: Cloud Run（未デプロイ）← 次のステップ
+- **Hasura**: Cloud Run ✅
+  - **URL**: https://hasura-dev-708502679003.asia-northeast1.run.app
+  - **GraphQL API**: https://hasura-dev-708502679003.asia-northeast1.run.app/v1/graphql
+  - **Console**: https://hasura-dev-708502679003.asia-northeast1.run.app/console
+  - **Admin Secret**: Secret Manager管理（v2）
+  - **Region**: asia-northeast1 (Tokyo)
+  - マイグレーション・メタデータ: 適用済み
 - **Firebase**:
   - **Auth**: プロジェクト作成済み（hasura-flutter-dev）
   - **Cloud Functions**: デプロイ済み ✅
-    - `setCustomClaimsOnCreate` - onCreate trigger
-    - `refreshCustomClaims` - callable function
-    - ⚠️ Cloud Run Hasuraに接続後に動作確認予定
+    - `setCustomClaimsOnCreate` - onCreate trigger（Cloud Run Hasura接続済み）
+    - `refreshCustomClaims` - callable function（Cloud Run Hasura接続済み）
+    - Region: us-central1
+- **Flutter**:
+  - `.env.dev` 更新済み（Cloud Run Hasura URL）
+  - 実機テスト: 次回実施予定
 
 ### Prod（本番環境）
 - **状態**: ❌ 未構築
@@ -308,9 +329,9 @@
 - [x] **M1: ローカル環境構築（Backend）** ← 完了！
 - [x] **M2: ローカル環境での動作確認（Backend）** ← 完了！
 - [x] **M3: Flutter開発環境セットアップ** ← 完了！
-- [ ] **M4: Firebase Auth実装 + Hasura連携** ← 次はここ
-- [ ] **M5: 基本的なCRUD実装**
-- [ ] **M6: Neon DB設定 + Dev環境デプロイ**
+- [x] **M4: Firebase Auth実装 + Hasura連携** ← 完了！
+- [x] **M5: Neon DB設定 + Dev環境デプロイ** ← 完了！
+- [ ] **M6: 基本的なCRUD実装 + 実機E2Eテスト** ← 次はここ
 - [ ] **M7: CI/CD構築**
 - [ ] **M8: Prod環境デプロイ**
 

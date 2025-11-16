@@ -485,6 +485,52 @@ query {
 
 ## Cloud Run / デプロイ関連
 
+### Secret Manager経由のシークレットが正しく読み込まれない
+
+**症状**: `invalid x-hasura-admin-secret/x-hasura-access-key` エラーが出る。または Hasura Console にアクセスできない。
+
+**原因**: Secret Manager に保存したシークレットに**改行文字が含まれている**
+
+Secret Manager に改行付きで保存されたシークレットは、Cloud Run の環境変数にマウントされる際、改行込みの値として渡されます。Hasura は改行付きの値で検証を行うため、認証が失敗します。
+
+**確認方法**:
+```bash
+# シークレットの値を16進数で確認
+gcloud secrets versions access 1 --secret=HASURA_GRAPHQL_ADMIN_SECRET | xxd | tail -1
+
+# 最後に "0a" (改行文字) があれば問題あり
+# 例: 00000040: 6332 3137 6363 3138 6464 6364 3435 6234 0a  c217cc18ddcd45b4.
+#                                                         ^^ この "0a" が改行
+```
+
+**解決方法**: 改行なしで新しいバージョンを作成
+
+```bash
+# 方法1: echo -n を使う（-n は改行を出力しない）
+openssl rand -hex 32 | tr -d '\n' > /tmp/secret.txt
+gcloud secrets versions add HASURA_GRAPHQL_ADMIN_SECRET --data-file=/tmp/secret.txt
+
+# 方法2: echo -n で直接パイプ
+echo -n "your_secret_value" | gcloud secrets create SECRET_NAME --data-file=-
+
+# 方法3: JSON の場合（JWT_SECRET など）
+cat secret.json | tr -d '\n' > secret_no_newline.json
+gcloud secrets versions add HASURA_GRAPHQL_JWT_SECRET --data-file=secret_no_newline.json
+```
+
+**再デプロイ**:
+```bash
+# 新しいバージョン（例: バージョン2）を使ってデプロイ
+gcloud run deploy hasura-dev \
+  --image=hasura/graphql-engine:v2.36.0 \
+  --set-secrets=HASURA_GRAPHQL_ADMIN_SECRET=HASURA_GRAPHQL_ADMIN_SECRET:2 \
+  # ... 他のオプション
+```
+
+**重要**: この問題は JWT_SECRET や DATABASE_URL でも発生する可能性があるため、すべてのシークレットで改行がないことを確認してください。
+
+---
+
 ### 「Container failed to start」
 
 **症状**: Cloud Run デプロイ後、コンテナが起動しない
@@ -509,6 +555,8 @@ gcloud logging read "resource.type=cloud_run_revision AND resource.labels.servic
    ```
 
 3. ポート番号の不一致（Cloud Runは8080がデフォルト）
+
+4. **シークレットに改行が含まれている**（上記参照）
 
 ---
 
