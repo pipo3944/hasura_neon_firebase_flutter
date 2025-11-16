@@ -139,30 +139,38 @@ node test-permissions.js
 
 詳細な設計・運用方針は以下のドキュメントを参照してください：
 
-### アーキテクチャ・設計
-- [アーキテクチャ概要](docs/architecture.md) - システム全体図とコンポーネント責務
-- [設計原則・決定事項](docs/design-principles.md) - UUID v7、命名規則、RLS等の方針
-- [データベース設計](docs/database-design.md) - テーブル設計規約、マルチテナント対応
+### Overview（システム理解）
+- [アーキテクチャ概要](docs/overview/architecture.md) - システム全体図とコンポーネント責務
+- [認証フロー](docs/overview/authentication-flow.md) - Firebase Auth × Hasura 連携、JWT設定
+- [環境構成](docs/overview/environments.md) - local/dev/prod の定義と使い分け
 
-### 環境・運用
-- [環境構成](docs/environment.md) - local/dev/prod の定義と使い分け
-- [開発フロー（Backend）](docs/development-flow.md) - Hasura ローカル開発・マイグレーション管理
-- [Flutter開発環境のセットアップ](docs/flutter-setup.md) - Firebase/Flavor設定・デバッグ環境
-- [デプロイフロー](docs/deployment.md) - CI/CD パイプライン・デプロイ手順
+### Getting Started（初期セットアップ）
+- [セットアップ概要](docs/getting-started/README.md) - セットアップの全体像と順序
+- [Backend セットアップ](docs/getting-started/backend-setup.md) - Docker、Hasura、PostgreSQL環境構築
+- [Neon セットアップ](docs/getting-started/neon-setup.md) - Neon PostgreSQLの設定
+- [Frontend セットアップ](docs/getting-started/frontend-setup.md) - Flutter、Firebase Auth、Flavor設定
 
-### セキュリティ
-- [認証・認可](docs/authentication.md) - Firebase Auth × Hasura 連携、ロール設計
+### Development（開発ワークフロー）
+- [Backend 開発ワークフロー](docs/development/backend-workflow.md) - マイグレーション作成、Hasura Console操作
+- [ドキュメント作成ガイド](docs/development/documentation-guide.md) - ドキュメントの書き方・更新方法
 
-### その他
-- [トラブルシューティング](docs/troubleshooting.md) - よくある問題と解決策
-- [将来拡張](docs/future-enhancements.md) - Preview環境、Actions等の構想
+### Deployment（デプロイ・運用）
+- [Cloud Run デプロイ](docs/deployment/cloud-run-deployment.md) - Hasura の Cloud Run へのデプロイ
+- [CI/CD](docs/deployment/ci-cd.md) - GitHub Actions パイプライン
+- [トラブルシューティング](docs/deployment/troubleshooting.md) - よくある問題と解決策
+
+### Reference（設計詳細）
+- [設計原則](docs/reference/design-principles.md) - アーキテクチャ判断の背景と理由
+- [データベース設計](docs/reference/database-design.md) - ER図、マルチテナント、インデックス戦略
+- [認証設計](docs/reference/authentication-design.md) - JWT、カスタムクレーム、セキュリティ
+- [将来拡張](docs/reference/future-enhancements.md) - Preview環境、Actions等の構想
 
 ## ディレクトリ構成
 
 ```
 hasura_flutter/
 ├── README.md                      # このファイル
-├── docs/                          # 設計ドキュメント
+├── docs/                          # 設計ドキュメント（overview/getting-started/development/deployment/reference）
 ├── backend/
 │   ├── hasura/                    # Hasura migrations & metadata
 │   ├── docker-compose.yml         # ローカル開発環境
@@ -180,7 +188,7 @@ hasura_flutter/
 6. **動作確認**: dev環境で実機テスト
 7. **本番デプロイ**: 承認後、手動で prod へ適用
 
-詳細は [開発フロー](docs/development-flow.md) を参照。
+詳細は [Backend開発ワークフロー](docs/development/backend-workflow.md) を参照。
 
 ## 開発哲学
 
@@ -200,4 +208,4 @@ MIT License (検証プロジェクトのため)
 
 ---
 
-**次のステップ**: [アーキテクチャ概要](docs/architecture.md) を読んで全体像を把握してください。
+**次のステップ**: [アーキテクチャ概要](docs/overview/architecture.md) を読んで全体像を把握してください。
