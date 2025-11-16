@@ -2,6 +2,40 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚨 BEFORE YOU START: Read the Documentation
+
+**CRITICAL**: Before working on ANY task in this repository, you MUST read the following documentation to understand the project architecture, design principles, and development workflow:
+
+### Required Reading (in order)
+
+1. **[Architecture Overview](docs/overview/architecture.md)** - System components, data flow, environment structure
+2. **[Design Principles](docs/reference/design-principles.md)** - Why we made specific architectural decisions
+3. **[Database Design](docs/reference/database-design.md)** - ER diagram, multi-tenancy, schema patterns
+4. **[Authentication Flow](docs/overview/authentication-flow.md)** - Firebase Auth + Hasura JWT integration
+5. **[Backend Workflow](docs/development/backend-workflow.md)** - Migration creation, Hasura Console usage, development process
+
+### Documentation Maintenance
+
+**You are responsible for keeping documentation up-to-date**:
+
+- ✅ **DO**: Update relevant docs when you make architectural changes
+- ✅ **DO**: Add new sections to existing docs when introducing new patterns
+- ✅ **DO**: Update code examples in docs when implementation details change
+- ✅ **DO**: Add troubleshooting entries when you solve non-trivial problems
+- ❌ **DON'T**: Make breaking changes without updating design-principles.md with rationale
+- ❌ **DON'T**: Introduce new database patterns without updating database-design.md
+
+**Which doc to update**:
+- System architecture changes → `docs/overview/architecture.md`
+- New design decisions → `docs/reference/design-principles.md`
+- Schema changes → `docs/reference/database-design.md`
+- Development workflow changes → `docs/development/backend-workflow.md`
+- Deployment/CI changes → `docs/deployment/ci-cd.md`
+- New errors/solutions → `docs/deployment/troubleshooting.md`
+- Future ideas → `docs/reference/future-enhancements.md`
+
+All documentation follows the guidelines in `docs/development/documentation-guide.md`.
+
 ## Project Overview
 
 This is a **verification project** for mobile app development using Hasura GraphQL Engine, Firebase Auth, Neon PostgreSQL, and Flutter. The goal is to establish and validate architecture patterns, not to build a production service.
@@ -264,14 +298,27 @@ app/
 └── .env.dev.example         # Environment templates
 
 docs/
-├── architecture.md          # System diagrams (mermaid), component responsibilities
-├── design-principles.md     # All design decisions with rationale
-├── database-design.md       # ER diagram, table schemas, indexing strategy
-├── authentication.md        # Auth flow diagrams, JWT config, role design
-├── development-flow.md      # Local dev → migration → PR → deploy workflow
-├── deployment.md            # CI/CD pipeline, GitHub Actions setup
-├── troubleshooting.md       # Common errors and solutions (updated in production)
-└── future-enhancements.md   # Neon preview branches, Actions, feature flags
+├── overview/                           # System understanding (for architects/PMs)
+│   ├── architecture.md                 # System diagrams, component responsibilities
+│   ├── authentication-flow.md          # Auth flow diagrams, JWT config
+│   └── environments.md                 # Local/Dev/Prod comparison
+├── getting-started/                    # Initial setup (for new developers)
+│   ├── README.md                       # Setup overview and order
+│   ├── backend-setup.md                # Docker, Hasura, PostgreSQL setup
+│   ├── neon-setup.md                   # Neon PostgreSQL configuration
+│   └── frontend-setup.md               # Flutter, Firebase Auth, Flavor setup
+├── development/                        # Daily workflow (for developers)
+│   ├── backend-workflow.md             # Migration creation, Hasura Console
+│   └── documentation-guide.md          # How to write/update docs
+├── deployment/                         # Operations (for DevOps/deployment)
+│   ├── cloud-run-deployment.md         # Hasura deployment to Cloud Run
+│   ├── ci-cd.md                        # GitHub Actions pipeline
+│   └── troubleshooting.md              # Common errors and solutions
+└── reference/                          # Deep dive (for architects/decision makers)
+    ├── design-principles.md            # All design decisions with rationale
+    ├── database-design.md              # ER diagram, multi-tenancy, indexing
+    ├── authentication-design.md        # JWT, Custom Claims, security
+    └── future-enhancements.md          # Planned improvements
 ```
 
 ## Development Workflow
@@ -365,18 +412,29 @@ Both run smoke tests after deployment:
 
 ## Documentation Navigation
 
-### Backend / Hasura
-- **Architecture questions**: See `docs/architecture.md`
-- **Design decisions**: See `docs/design-principles.md`
-- **DB schema questions**: See `docs/database-design.md`
-- **Development workflow**: See `docs/development-flow.md`
-- **Deployment issues**: See `docs/deployment.md`
+### Overview (System Understanding)
+- **Architecture**: [docs/overview/architecture.md](docs/overview/architecture.md) - System diagrams, component responsibilities
+- **Authentication Flow**: [docs/overview/authentication-flow.md](docs/overview/authentication-flow.md) - Auth flow diagrams, JWT config
+- **Environments**: [docs/overview/environments.md](docs/overview/environments.md) - Local/Dev/Prod comparison
 
-### Frontend / Flutter
-- **Flutter environment setup**: See `docs/flutter-setup.md`
-- **Auth implementation**: See `docs/authentication.md`
+### Getting Started (Initial Setup)
+- **Backend Setup**: [docs/getting-started/backend-setup.md](docs/getting-started/backend-setup.md) - Docker, Hasura, PostgreSQL setup
+- **Neon Setup**: [docs/getting-started/neon-setup.md](docs/getting-started/neon-setup.md) - Neon PostgreSQL configuration
+- **Frontend Setup**: [docs/getting-started/frontend-setup.md](docs/getting-started/frontend-setup.md) - Flutter, Firebase Auth, Flavor setup
 
-### General
-- **Errors & troubleshooting**: See `docs/troubleshooting.md`
+### Development (Daily Workflow)
+- **Backend Workflow**: [docs/development/backend-workflow.md](docs/development/backend-workflow.md) - Migration creation, Hasura Console, development process
+- **Documentation Guide**: [docs/development/documentation-guide.md](docs/development/documentation-guide.md) - How to write/update docs
+
+### Deployment (Operations)
+- **Cloud Run**: [docs/deployment/cloud-run-deployment.md](docs/deployment/cloud-run-deployment.md) - Hasura deployment to Cloud Run
+- **CI/CD**: [docs/deployment/ci-cd.md](docs/deployment/ci-cd.md) - GitHub Actions pipeline
+- **Troubleshooting**: [docs/deployment/troubleshooting.md](docs/deployment/troubleshooting.md) - Common errors and solutions
+
+### Reference (Deep Dive)
+- **Design Principles**: [docs/reference/design-principles.md](docs/reference/design-principles.md) - All design decisions with rationale
+- **Database Design**: [docs/reference/database-design.md](docs/reference/database-design.md) - ER diagram, multi-tenancy, indexing
+- **Authentication Design**: [docs/reference/authentication-design.md](docs/reference/authentication-design.md) - JWT, Custom Claims, security
+- **Future Enhancements**: [docs/reference/future-enhancements.md](docs/reference/future-enhancements.md) - Planned improvements
 
 All architecture diagrams use mermaid syntax and are embedded in markdown files.
