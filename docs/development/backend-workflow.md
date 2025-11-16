@@ -82,7 +82,7 @@ hasura console
 
 Flutter アプリの開発環境セットアップ（Firebase設定、Flavor設定、デバッグ環境）については、専用ドキュメントを参照してください:
 
-**→ [Flutter開発環境のセットアップ (flutter-setup.md)](flutter-setup.md)**
+**→ [Flutter開発環境のセットアップ](../getting-started/frontend-setup.md)**
 
 内容:
 - Firebase 設定ファイルの配置
@@ -697,7 +697,7 @@ jobs:
           bash backend/scripts/smoke-test.sh
 ```
 
-詳細は [デプロイフロー](deployment.md) を参照。
+詳細は [CI/CD設定](../deployment/ci-cd.md) を参照。
 
 ---
 
@@ -718,4 +718,7 @@ jobs:
 - `up.sql` / `down.sql` を必ず確認
 - メタデータとマイグレーションをセットでコミット
 
-次は [デプロイフロー](deployment.md) で CI/CD の詳細を確認してください。
+次のステップ:
+- [CI/CD設定](../deployment/ci-cd.md) - GitHub Actions ワークフロー
+- [Cloud Run デプロイ](../deployment/cloud-run-deployment.md) - 本番環境デプロイ
+- [トラブルシューティング](../deployment/troubleshooting.md) - よくあるエラーと対処法

@@ -139,10 +139,10 @@ sequenceDiagram
 ## 次のステップ
 
 詳細な設計背景は以下を参照:
-- [認証・認可の設計](../reference/authentication.md) - Hasura JWT設定、セキュリティ
+- [認証・認可の設計](../reference/authentication-design.md) - Hasura JWT設定、セキュリティ
 - [環境構成](environments.md) - Local/Dev/Prod環境の違い
-- [マルチテナント設計](../reference/multi-tenancy.md) - テナント分離戦略
+- [データベース設計](../reference/database-design.md) - マルチテナント戦略
 
 実装手順は以下を参照:
 - [Flutter環境セットアップ](../getting-started/frontend-setup.md) - Firebase Auth実装
-- [Cloud Functions デプロイ](../deployment/cloud-functions-deployment.md) - Custom Claims設定
+- [Backend開発ワークフロー](../development/backend-workflow.md) - Custom Claims設定とマイグレーション
