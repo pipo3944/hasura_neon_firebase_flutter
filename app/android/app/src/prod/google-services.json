@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:173007583913:android:421414d97faf471123c7b8",
+        "mobilesdk_app_id": "1:173007583913:android:89dfd614ed66670923c7b8",
         "android_client_info": {
-          "package_name": "com.example.hasuraFlutter.prod"
+          "package_name": "com.mizunoyusei.hasuraFlutter.prod"
         }
       },
       "oauth_client": [],

@@ -20,9 +20,9 @@
 -- -----------------------------------------------------------------------------
 -- 2. Organizations (Tenants)
 -- -----------------------------------------------------------------------------
-INSERT INTO organizations (id, name, slug) VALUES
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Acme Corp', 'acme-corp'),
-  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Beta Inc', 'beta-inc')
+INSERT INTO organizations (id, name, slug, code) VALUES
+  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'Acme Corp', 'acme-corp', 'ACME2024'),
+  ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Beta Inc', 'beta-inc', 'BETA2024')
 ON CONFLICT (id) DO NOTHING;
 
 -- -----------------------------------------------------------------------------

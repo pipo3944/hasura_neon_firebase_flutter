@@ -122,14 +122,30 @@ await admin.auth().setCustomUserClaims(uid, {
 ```
 
 **環境ごとの差分**:
-- **Dev**: `"issuer": "https://securetoken.google.com/myproject-dev"`
-- **Prod**: `"issuer": "https://securetoken.google.com/myproject-prod"`
+- **Dev**: `"issuer": "https://securetoken.google.com/hasura-flutter-dev"`, `"audience": "hasura-flutter-dev"`
+- **Prod**: `"issuer": "https://securetoken.google.com/hasura-flutter-prod"`, `"audience": "hasura-flutter-prod"`
 
 ### 環境変数設定例
+
+**Local環境（backend/.env）**:
 ```bash
-# Secret Manager または .env
-HASURA_GRAPHQL_JWT_SECRET='{"type":"RS256","jwk_url":"https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com","issuer":"https://securetoken.google.com/myproject-dev","audience":"myproject-dev"}'
+# Dev用の設定（hasura-flutter-dev）
+HASURA_GRAPHQL_JWT_SECRET={"type":"RS256","jwk_url":"https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com","issuer":"https://securetoken.google.com/hasura-flutter-dev","audience":"hasura-flutter-dev","claims_map":{"x-hasura-allowed-roles":{"path":"$.role","default":["user"]},"x-hasura-default-role":{"path":"$.role","default":"user"},"x-hasura-user-id":{"path":"$.user_id"},"x-hasura-tenant-id":{"path":"$.tenant_id"}}}
 ```
+
+**Cloud Run（Secret Manager）**:
+```bash
+# Dev環境
+HASURA_GRAPHQL_JWT_SECRET='{"type":"RS256","jwk_url":"https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com","issuer":"https://securetoken.google.com/hasura-flutter-dev","audience":"hasura-flutter-dev","claims_map":{"x-hasura-allowed-roles":{"path":"$.role","default":["user"]},"x-hasura-default-role":{"path":"$.role","default":"user"},"x-hasura-user-id":{"path":"$.user_id"},"x-hasura-tenant-id":{"path":"$.tenant_id"}}}'
+
+# Prod環境
+HASURA_GRAPHQL_JWT_SECRET='{"type":"RS256","jwk_url":"https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com","issuer":"https://securetoken.google.com/hasura-flutter-prod","audience":"hasura-flutter-prod","claims_map":{"x-hasura-allowed-roles":{"path":"$.role","default":["user"]},"x-hasura-default-role":{"path":"$.role","default":"user"},"x-hasura-user-id":{"path":"$.user_id"},"x-hasura-tenant-id":{"path":"$.tenant_id"}}}'
+```
+
+**設定手順**:
+1. 上記のJWT Secretを`backend/.env`に設定
+2. Docker Compose を再起動: `docker compose restart hasura`
+3. Hasuraログで検証: `docker compose logs hasura | grep JWT`
 
 ---
 
@@ -589,12 +605,81 @@ console.log(token);  // user_id が含まれているか確認
 
 ---
 
+## 実装状況
+
+### ✅ 完了している実装
+
+**Phase 4で実装済み**:
+1. **認証サービス** (`lib/services/auth_service.dart`)
+   - Email/Password認証
+   - サインアップ/ログイン/ログアウト
+   - ID Token取得・リフレッシュ
+
+2. **GraphQL設定** (`lib/config/graphql_config.dart`)
+   - JWT自動付与（Authorization ヘッダー）
+   - 認証状態変更時の自動クライアント更新
+
+3. **Riverpod Providers** (`lib/providers/auth_provider.dart`)
+   - 認証状態監視（`authStateProvider`）
+   - GraphQLクライアント管理（`graphqlClientProvider`）
+
+4. **UI画面**
+   - スプラッシュ画面（認証状態チェック）
+   - ログイン画面
+   - サインアップ画面（組織コード入力対応）
+   - ホーム画面（ユーザー情報表示）
+
+5. **GraphQLクエリ定義** (`graphql/`)
+   - `users.graphql`: ユーザー同期（UpsertUser）
+   - `organizations.graphql`: 組織コード検証
+
+6. **環境設定**
+   - Flavor対応（dev/prod）
+   - 環境変数管理（`.env.dev`, `.env.prod`）
+
+### ✅ Phase 5 で追加実装済み
+
+**Cloud Functions** (`backend/functions/`):
+1. **setCustomClaimsOnCreate**: Firebase Authユーザー作成時の自動トリガー
+   - Hasuraからユーザー情報を取得（GraphQL Query）
+   - Custom Claims設定（`role`, `tenant_id`）
+   - エラーハンドリング・ロギング
+
+2. **refreshCustomClaims**: 手動リフレッシュ用callable関数
+   - クライアントから呼び出し可能
+   - ロール変更時のClaims再取得
+
+3. **Flutter連携** (`lib/services/cloud_functions_service.dart`)
+   - `refreshCustomClaims()` の呼び出し
+   - トークン強制リフレッシュ
+
+**実装ファイル**:
+- `backend/functions/src/index.ts`: Cloud Functions本体
+- `backend/functions/package.json`: 依存パッケージ定義
+- `backend/functions/tsconfig.json`: TypeScript設定
+- `backend/functions/README.md`: デプロイ手順
+- `app/lib/services/cloud_functions_service.dart`: Flutter連携サービス
+
+### ⏳ まだ実装していない部分
+
+**デプロイ**（ユーザー操作が必要）:
+- [ ] Cloud Functionsのデプロイ（dev環境）
+- [ ] 環境変数設定（Hasuraエンドポイント、Admin Secret）
+- [ ] Cloud Functionsのデプロイ（prod環境）
+
+**動作確認後の動作**:
+- ユーザー登録時、自動的に `role: user`, `tenant_id` が設定される
+- JWTに必要なClaimsが含まれる
+- Hasuraのパーミッションが正常に動作
+
+---
+
 ## まとめ
 
 - **Firebase Auth**: 認証専用（JWTを発行）
 - **Hasura**: 認可専用（パーミッションで制御）
-- **Custom Claims**: ロール・テナントIDをJWTに含める
-- **ユーザー同期**: クライアント発火のidempotent upsert
-- **トークンリフレッシュ**: 1時間ごと + Claims変更時
+- **Custom Claims**: ロール・テナントIDをJWTに含める（Phase 5で実装予定）
+- **ユーザー同期**: クライアント発火のidempotent upsert（実装済み）
+- **トークンリフレッシュ**: 1時間ごと + Claims変更時（実装済み）
 
 次は [データベース設計](database-design.md) で具体的なテーブル構造を確認してください。

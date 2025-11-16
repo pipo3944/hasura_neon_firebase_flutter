@@ -1,4 +1,4 @@
-package com.mizunoyusei.hasura_flutter
+package com.mizunoyusei.hasuraFlutter
 
 import io.flutter.embedding.android.FlutterActivity
 

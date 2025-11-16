@@ -33,6 +33,50 @@ fvm flutter --version
 
 ---
 
+## 依存パッケージ一覧
+
+このプロジェクトで使用する主要なパッケージ：
+
+### 本番依存（dependencies）
+- **Firebase**
+  - `firebase_core: ^4.2.0` - Firebase初期化
+  - `firebase_auth: ^5.3.4` - Firebase認証
+
+- **GraphQL**
+  - `graphql_flutter: ^5.1.2` - GraphQLクライアント
+  - `gql: ^1.0.0` - GraphQLドキュメントパーサー
+
+- **環境変数**
+  - `flutter_dotenv: ^5.2.1` - .env ファイル管理
+
+- **UUID生成**
+  - `uuid: ^4.5.1` - UUID v7 生成用
+
+- **ローカルストレージ**
+  - `shared_preferences: ^2.3.4` - Key-Value ストレージ
+
+- **ルーティング**
+  - `go_router: ^14.6.2` - 宣言的ルーティング
+
+- **状態管理**
+  - `flutter_riverpod: ^2.6.1` - 状態管理ライブラリ
+
+### 開発依存（dev_dependencies）
+- **GraphQL Code Generation**
+  - `build_runner: ^2.4.13` - コード生成ツール
+  - `graphql_codegen: ^0.14.0` - GraphQL型生成
+
+- **Linter**
+  - `flutter_lints: ^5.0.0` - 推奨Lint設定
+
+**インストール**:
+```bash
+cd app
+fvm flutter pub get
+```
+
+---
+
 ## Firebase設定ファイルの配置
 
 ### Firebase プロジェクトから設定ファイルをダウンロード
@@ -78,10 +122,10 @@ Flutter Flavor を使用することで、dev/prod 環境を同時にインス�
 
 ```kotlin
 android {
-    namespace = "com.yourcompany.hasura_flutter"  // 適切な名前に変更
+    namespace = "com.mizunoyusei.hasuraFlutter"
 
     defaultConfig {
-        applicationId = "com.yourcompany.hasura_flutter"
+        applicationId = "com.mizunoyusei.hasuraFlutter"  // キャメルケースで統一
         // ...
     }
 

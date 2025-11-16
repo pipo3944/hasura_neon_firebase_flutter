@@ -7,28 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:708502679003:android:1ede43638044ec0fde4bfe",
+        "mobilesdk_app_id": "1:708502679003:android:960b6b6de78aeb22de4bfe",
         "android_client_info": {
           "package_name": "com.mizunoyusei.hasuraFlutter.dev"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB_G_RZpikkPJvrMuVD_UtEN_VvMJa4KKo"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:708502679003:android:f535e6567934be8bde4bfe",
-        "android_client_info": {
-          "package_name": "com.mizunoyusei.hasura_flutter"
         }
       },
       "oauth_client": [],

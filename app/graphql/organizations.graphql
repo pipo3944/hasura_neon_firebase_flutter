@@ -1,0 +1,21 @@
+# Validate organization code
+# Used during signup to verify organization code and get tenant ID
+query ValidateOrgCode($code: String!) {
+  organizations(where: { code: { _eq: $code }, deleted_at: { _is_null: true } }) {
+    id
+    name
+    slug
+    code
+  }
+}
+
+# Get default organization (for users without org code)
+# Returns the first organization (Acme Corp in seed data)
+query GetDefaultOrg {
+  organizations(where: { deleted_at: { _is_null: true } }, limit: 1, order_by: { created_at: asc }) {
+    id
+    name
+    slug
+    code
+  }
+}

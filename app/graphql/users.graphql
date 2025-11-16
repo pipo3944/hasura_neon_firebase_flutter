@@ -1,0 +1,43 @@
+# Upsert user mutation
+# Used to sync Firebase user with Hasura database on first login
+mutation UpsertUser($id: uuid!, $email: String!, $name: String, $tenantId: uuid!) {
+  insert_users_one(
+    object: {
+      id: $id
+      email: $email
+      name: $name
+      tenant_id: $tenantId
+    }
+    on_conflict: {
+      constraint: users_pkey
+      update_columns: [email, name, updated_at]
+    }
+  ) {
+    id
+    email
+    name
+    tenant_id
+    role
+    created_at
+    updated_at
+  }
+}
+
+# Get current user info
+query GetUser($id: uuid!) {
+  users_by_pk(id: $id) {
+    id
+    email
+    name
+    tenant_id
+    role
+    created_at
+    updated_at
+    organization {
+      id
+      name
+      slug
+      code
+    }
+  }
+}

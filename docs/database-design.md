@@ -33,6 +33,7 @@ erDiagram
         uuid id PK
         text name
         text slug UK
+        text code UK
         timestamptz created_at
         timestamptz updated_at
         timestamptz deleted_at
@@ -98,6 +99,7 @@ CREATE TABLE organizations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,  -- URL用（例: acme-corp）
+  code VARCHAR(50) UNIQUE NOT NULL,  -- 組織コード（例: ACME2024）
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   deleted_at TIMESTAMPTZ
@@ -105,6 +107,7 @@ CREATE TABLE organizations (
 
 -- インデックス
 CREATE INDEX idx_organizations_slug ON organizations(slug) WHERE deleted_at IS NULL;
+CREATE INDEX idx_organizations_code ON organizations(code);
 CREATE INDEX idx_organizations_created_at ON organizations(created_at DESC);
 
 -- トリガー（updated_at 自動更新）
@@ -118,6 +121,7 @@ CREATE TRIGGER update_organizations_updated_at
 - `id`: プライマリキー（UUID v7）
 - `name`: 組織名（例: 株式会社ACME）
 - `slug`: URL用のユニークな識別子（例: acme-corp）
+- `code`: 組織コード - ユーザー登録時に入力するコード（例: ACME2024）。この値を使って組織への参加を制御する
 - `deleted_at`: ソフトデリート用
 
 ---
