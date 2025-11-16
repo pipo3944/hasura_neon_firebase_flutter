@@ -1,10 +1,10 @@
 # プロジェクト進捗管理
 
-最終更新: 2025-11-03
+最終更新: 2025-11-16
 
-## 📍 現在のフェーズ: Flutter開発環境セットアップ完了 ✅
+## 📍 現在のフェーズ: Firebase Auth実装（Phase 5）完了 ✅
 
-次のステップ: **Firebase Auth実装 + Hasura連携**
+次のステップ: **Neon DB + Cloud Run デプロイ（Dev環境構築）**
 
 ---
 
@@ -110,28 +110,110 @@
 
 ## 🚧 次にやるべきこと（優先順位順）
 
-### 1. Firebase Auth 実装 🎯 **← 次はここ！**
+### 1. Firebase Auth 実装 🎯 **← 進行中！**
 - [x] Firebase プロジェクト作成
   - [x] dev環境用プロジェクト
   - [x] prod環境用プロジェクト
-- [ ] Flutter での Firebase Auth 初期化
-  - [ ] `firebase_core` パッケージ設定
-  - [ ] `firebase_auth` パッケージ設定
-  - [ ] Flavor別の初期化処理
-- [ ] 認証フロー実装
-  - [ ] Email/Password 認証
-  - [ ] ログイン/ログアウト画面
-  - [ ] ユーザー登録画面
-- [ ] Hasura との連携
-  - [ ] ID Token の取得
-  - [ ] GraphQL クライアント設定（Authorization ヘッダー）
-  - [ ] Token 自動リフレッシュ
-- [ ] Custom Claims 設定（後回しも可）
-  - [ ] Cloud Functions プロジェクト作成
-  - [ ] setCustomUserClaims 関数実装
-  - [ ] role, tenant_id の設定
+- [x] **Phase 1: データベース準備** ✅
+  - [x] `organizations` テーブルに `code` カラム追加（マイグレーション作成）
+  - [x] シードデータ更新（組織コード: ACME2024, BETA2024）
+  - [x] ドキュメント更新（`database-design.md`）
+- [x] **Phase 2: Backend - Hasura JWT設定** ✅
+  - [x] JWT Secret を Firebase RS256 に更新（`backend/.env`）
+  - [x] ドキュメント更新（`authentication.md`）
+  - [x] Docker Compose 再起動
+- [x] **Phase 3: Flutter - 依存パッケージとプロジェクト設定** ✅
+  - [x] `pubspec.yaml` 更新（firebase_auth, graphql_flutter等）
+  - [x] パッケージ名/Bundle ID 統一（`com.mizunoyusei.hasuraFlutter`）
+  - [x] `firebase_options.dart` Flavor対応
+  - [x] 環境変数ファイル作成（`.env.dev`, `.env.prod`）
+  - [x] ドキュメント更新（`flutter-setup.md`）
+  - [x] パッケージインストール
+- [x] **Phase 4: Flutter - 認証UI実装** ✅
+  - [x] プロジェクト構造作成（`config/`, `services/`, `screens/`, `providers/`, `graphql/`）
+  - [x] Email/Password 認証実装（`auth_service.dart`）
+  - [x] ログイン/サインアップ画面（組織コード入力対応）
+  - [x] GraphQL クライアント設定（Authorization ヘッダー、`graphql_config.dart`）
+  - [x] Token 自動リフレッシュ（`authStateProvider`, `idTokenChanges`）
+  - [x] ユーザー同期（Hasura、`UpsertUser` mutation）
+  - [x] GraphQLクエリ定義（`users.graphql`, `organizations.graphql`）
+  - [x] ドキュメント更新（`authentication.md`）
+- [x] **Phase 5: Cloud Functions - Custom Claims設定** ✅
+  - [x] Cloud Functions プロジェクト作成（`backend/functions/`）
+  - [x] setCustomUserClaims 関数実装（`index.ts`）
+    - [x] `setCustomClaimsOnCreate`: ユーザー作成時のトリガー
+    - [x] `refreshCustomClaims`: 手動リフレッシュ用callable関数
+  - [x] Flutter連携サービス実装（`cloud_functions_service.dart`）
+  - [x] 依存パッケージ追加（`cloud_functions: ^5.1.0`）
+  - [x] ドキュメント作成（`backend/functions/README.md`）
+  - [x] Firebase プロジェクト設定（`firebase init`, `firebase.json`）
+  - [x] デプロイ（dev環境） ✅
+    - [x] Node.js 20 ランタイムにアップグレード
+    - [x] ESLint問題解決（predeploy から除外）
+    - [x] クリーンアップポリシー設定（30日保持）
+- [x] **Phase 6: 実機での初期動作確認** ✅（部分的）
+  - [x] iOS実機でのアプリ起動確認（iPhone 14）
+    - [x] CocoaPods依存関係の解決
+  - [x] 実機接続テスト
+    - [x] ローカルネットワーク経由でのHasura接続確認
+    - [x] CORS設定の動作確認
+  - [x] Firebase Auth サインアップ動作確認
+  - [x] マイグレーション適用（`add_org_code_column`）
+    - [x] UNIQUE制約エラー修正（段階的適用方式に変更）
+  - [⚠️] JWT検証エラー（既知の問題）
+    - Cloud FunctionsがローカルHasuraにアクセスできないため
+    - 次のフェーズ（Cloud Run デプロイ）で解決予定
 
-### 2. GraphQL Code Generation & 基本的なCRUD実装
+### 2. Neon DB + Cloud Run デプロイ（dev環境構築） 🎯 **← 次はここ！**
+
+#### Step 1: Neon DB セットアップ ✅
+- [x] Neon アカウント作成
+- [x] プロジェクト作成（hasura-flutter）
+- [x] dev ブランチ確認（自動作成: production, development）
+- [x] 接続文字列取得（DATABASE_URL - Direct connection）
+- [x] ローカルマイグレーションを Neon に適用
+  - [x] マイグレーション適用スクリプト作成（`apply-migrations-to-neon.sh`）
+  - [x] 6件のマイグレーション適用完了
+  - [x] `post_status_types` データ手動投入（文字エンコーディング対応）
+  - [x] シード適用スクリプト作成（`apply-seed-to-neon.sh`）
+  - [x] テストデータ投入完了（組織2件、ユーザー5件、投稿13件）
+- [x] ドキュメント作成（`docs/neon-setup.md`）
+
+#### Step 2: Cloud Run Hasura デプロイ
+- [ ] Google Cloud プロジェクト確認/作成
+- [ ] Secret Manager 設定
+  - [ ] `HASURA_GRAPHQL_DATABASE_URL`（Neon接続文字列）
+  - [ ] `HASURA_GRAPHQL_ADMIN_SECRET`（新規生成）
+  - [ ] `HASURA_GRAPHQL_JWT_SECRET`（Firebase RS256設定）
+- [ ] Cloud Run サービス作成
+  - [ ] Hasura イメージ指定（`hasura/graphql-engine:v2.x`）
+  - [ ] 環境変数・Secret設定
+  - [ ] 公開アクセス許可
+- [ ] デプロイ & ヘルスチェック
+
+#### Step 3: Cloud Functions 設定更新
+- [ ] Cloud Functions 環境変数更新
+  - [ ] `hasura.endpoint` → Cloud Run URL
+  - [ ] `hasura.admin_secret` → 新規生成したシークレット
+- [ ] 再デプロイ
+  - [ ] `firebase deploy --only functions`
+
+#### Step 4: Flutter アプリ設定更新
+- [ ] `app/.env.dev` 更新
+  - [ ] `HASURA_ENDPOINT` → Cloud Run URL
+- [ ] アプリ再起動・動作確認
+
+#### Step 5: 完全なE2Eテスト
+- [ ] サインアップテスト（組織コードなし）
+- [ ] サインアップテスト（組織コード入力）
+- [ ] Custom Claims設定確認（Cloud Functions → Hasura）
+- [ ] JWT検証確認（Flutter → Hasura）
+- [ ] ユーザー情報取得（GraphQL クエリ）
+- [ ] パーミッションテスト
+  - [ ] user ロール: 自分のデータのみ
+  - [ ] tenant_admin ロール: テナント内全データ
+
+### 3. GraphQL Code Generation & 基本的なCRUD実装
 - [ ] GraphQL クエリ定義（`.graphql` ファイル）
   - [ ] ユーザー情報取得
   - [ ] 投稿一覧取得
@@ -142,29 +224,17 @@
   - [ ] 投稿詳細画面
   - [ ] 投稿作成・編集画面
 
-### 3. Neon DB 設定
-- [ ] Neon アカウント作成
-- [ ] プロジェクト作成
-  - [ ] dev ブランチ作成
-  - [ ] prod ブランチ作成（main）
-- [ ] 接続文字列取得
-- [ ] ローカルマイグレーションを Neon に適用
-  - [ ] dev ブランチに `hasura migrate apply`
-  - [ ] メタデータ適用
-
-### 4. Cloud Run デプロイ（dev環境）
-- [ ] Cloud Run サービス作成
-- [ ] Secret Manager 設定
-  - [ ] `DATABASE_URL`
-  - [ ] `HASURA_GRAPHQL_ADMIN_SECRET`
-  - [ ] `HASURA_GRAPHQL_JWT_SECRET`
-- [ ] デプロイ & 動作確認
-
-### 5. CI/CD パイプライン構築
+### 4. CI/CD パイプライン構築
 - [ ] GitHub Actions ワークフロー作成
   - [ ] dev 自動デプロイ
   - [ ] スモークテスト
 - [ ] prod 手動デプロイワークフロー
+
+### 5. Prod環境構築
+- [ ] Neon prod ブランチ作成（main）
+- [ ] Cloud Run prod サービス作成
+- [ ] Cloud Functions prod デプロイ
+- [ ] Flutter prod設定
 
 
 ---
@@ -172,11 +242,11 @@
 ## 📊 各環境の状態
 
 ### Local（ローカル開発環境）
-- **状態**: ✅ 完全動作確認済み
+- **状態**: ✅ 完全動作確認済み（DB開発用）
 - **Backend**:
   - **DB**: Docker Compose Postgres
   - **Hasura**: Docker Compose（`localhost:8080`）
-  - **マイグレーション**: 適用済み（5 migrations）
+  - **マイグレーション**: 適用済み（6 migrations - `add_org_code_column`含む）
   - **メタデータ**: エクスポート済み
   - **シードデータ**: 投入済み（組織2件、ユーザー5件、投稿13件）
   - **パーミッションテスト**: 全ロール合格
@@ -185,19 +255,30 @@
   - **Firebase**: dev/prodプロジェクト作成済み
   - **Flavor**: dev/prod設定完了（Android/iOS）
   - **デバッグ環境**: VS Code/Cursor設定完了
-  - **実機テスト**: iPhone 14 で動作確認済み
+  - **実機テスト**: 動作確認済み
+  - **認証**: Firebase Auth 実装済み、サインアップ動作確認済み
+  - **Note**: ローカル環境はDB開発用。アプリテストは次フェーズでDev環境を使用
 
 ### Dev（開発環境）
-- **状態**: ❌ 未構築
-- **DB**: Neon（未作成）
-- **Hasura**: Cloud Run（未デプロイ）
-- **Firebase**: プロジェクト作成済み、Auth未実装
+- **状態**: ⚠️ 部分的構築（Neon DB + Cloud Functions）
+- **DB**: Neon ✅
+  - プロジェクト: `hasura-flutter`
+  - ブランチ: `development` (AWS Singapore)
+  - マイグレーション: 適用済み（6件）
+  - データ: 組織2件、ユーザー5件、投稿13件
+- **Hasura**: Cloud Run（未デプロイ）← 次のステップ
+- **Firebase**:
+  - **Auth**: プロジェクト作成済み（hasura-flutter-dev）
+  - **Cloud Functions**: デプロイ済み ✅
+    - `setCustomClaimsOnCreate` - onCreate trigger
+    - `refreshCustomClaims` - callable function
+    - ⚠️ Cloud Run Hasuraに接続後に動作確認予定
 
 ### Prod（本番環境）
 - **状態**: ❌ 未構築
 - **DB**: Neon（未作成）
 - **Hasura**: Cloud Run（未デプロイ）
-- **Firebase**: プロジェクト作成済み、Auth未実装
+- **Firebase**: プロジェクト作成済み（hasura-flutter-prod）、未実装
 
 ---
 
@@ -213,6 +294,12 @@
 - **現状**: `gen_random_uuid()` (UUID v4) を使用
 - **理想**: UUID v7 で時系列ソート可能に
 - **対応**: 将来的に `pg_uuidv7` 拡張または Dart 側で生成に移行予定
+
+### マイグレーションファイルの文字エンコーディング
+- **問題**: `post_status_types` マイグレーションの日本語ラベルが文字化け
+- **影響**: マイグレーション適用時にINSERTが失敗する
+- **回避策**: 手動でデータ投入（英語ラベル使用）
+- **対応**: マイグレーションファイルを英語化または UTF-8 BOM なしで保存
 
 ---
 

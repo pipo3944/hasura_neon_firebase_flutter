@@ -27,6 +27,9 @@ docker-compose.override.yml
 
 # Hasura
 backend/hasura/config.yaml
+backend/hasura/config-neon-*.yaml
+backend/hasura/apply-migrations-to-neon.sh
+backend/hasura/apply-seed-to-neon.sh
 
 # Node.js (for test scripts)
 node_modules/

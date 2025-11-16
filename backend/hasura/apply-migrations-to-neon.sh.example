@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+
+# Neon development branch の Direct connection 文字列を設定してください
+# 取得方法: Neon Console > development branch > Dashboard > Connection Details > Direct connection
+DATABASE_URL='postgresql://neondb_owner:YOUR_PASSWORD@YOUR_ENDPOINT.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+
+MIGRATIONS_DIR="/Users/YOUR_USERNAME/Desktop/dev/hasura_flutter/backend/hasura/migrations"
+
+echo "Applying migrations to Neon development branch..."
+
+for migration_dir in "$MIGRATIONS_DIR/default/"*/; do
+  migration_name=$(basename "$migration_dir")
+  echo ""
+  echo "📦 Applying migration: $migration_name"
+
+  docker run --rm \
+    -v "$MIGRATIONS_DIR:/migrations" \
+    postgres:15 \
+    psql "$DATABASE_URL" \
+    -f "/migrations/default/$migration_name/up.sql"
+
+  echo "✅ Migration $migration_name applied successfully"
+done
+
+echo ""
+echo "🎉 All migrations applied successfully!"
